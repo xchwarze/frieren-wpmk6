@@ -1,7 +1,7 @@
 <?php namespace frieren\core;
 
 /* Code modified by Frieren Auto Refactor */
-class Logging extends SystemModule
+class Logging extends Controller
 {
     protected $endpointRoutes = ['getSyslog', 'getDmesg', 'getReportingLog', 'getPineapLog', 'clearPineapLog', 'getPineapLogLocation', 'setPineapLogLocation', 'downloadPineapLog'];
 

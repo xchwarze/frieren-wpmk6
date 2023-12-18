@@ -1,7 +1,7 @@
 <?php namespace frieren\core;
 
 /* Code modified by Frieren Auto Refactor */
-class Clients extends SystemModule
+class Clients extends Controller
 {
     protected $endpointRoutes = ['getClientData', 'kickClient'];
     private $dbConnection;

@@ -1,7 +1,7 @@
 <?php namespace frieren\core;
 
 /* Code modified by Frieren Auto Refactor */
-class Setup extends APIModule
+class Setup extends Controller
 {
     protected $endpointRoutes = [];
 

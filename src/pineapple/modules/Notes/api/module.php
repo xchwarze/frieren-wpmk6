@@ -1,7 +1,7 @@
 <?php namespace frieren\core;
 
 /* Code modified by Frieren Auto Refactor */
-class Notes extends SystemModule
+class Notes extends Controller
 {
 
     protected $endpointRoutes = ['setName', 'setNote', 'getNotes', 'getNote', 'deleteNote', 'downloadNotes', 'getKeys'];

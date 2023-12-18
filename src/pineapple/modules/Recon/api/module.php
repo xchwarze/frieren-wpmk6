@@ -31,7 +31,7 @@ abstract class EncryptionFields
     const WPA2_GROUP_CCMP = 0x1000000;
 }
 
-class Recon extends SystemModule
+class Recon extends Controller
 {
     protected $endpointRoutes = ['startPineAPDaemon', 'checkPineAPDaemon', 'startNormalScan', 'startLiveScan', 'startReconPP', 'stopScan', 'getScans', 'getScanLocation', 'setScanLocation', 'checkScanStatus', 'loadResults', 'downloadResults', 'removeScan', 'getWSAuthToken'];
     private $dbConnection = null;

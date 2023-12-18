@@ -1,7 +1,7 @@
 <?php namespace frieren\core;
 
 /* Code modified by Frieren Auto Refactor */
-class Advanced extends SystemModule
+class Advanced extends Controller
 {
     protected $endpointRoutes = ['getResources', 'dropCaches', 'getUSB', 'getFstab', 'saveFstab', 'getCSS', 'saveCSS', 'formatSDCard', 'formatSDCardStatus', 'checkForUpgrade', 'downloadUpgrade', 'getDownloadStatus', 'performUpgrade', 'getCurrentVersion', 'checkApiToken', 'addApiToken', 'getApiTokens', 'revokeApiToken'];
     private $dbConnection;

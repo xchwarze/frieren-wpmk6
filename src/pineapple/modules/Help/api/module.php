@@ -1,7 +1,7 @@
 <?php namespace frieren\core;
 
 /* Code modified by Frieren Auto Refactor */
-class Help extends SystemModule
+class Help extends Controller
 {
     protected $endpointRoutes = ['generateDebugFile', 'downloadDebugFile', 'getConsoleOutput'];
 

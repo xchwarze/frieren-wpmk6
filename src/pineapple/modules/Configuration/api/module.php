@@ -1,7 +1,7 @@
 <?php namespace frieren\core;
 
 /* Code modified by Frieren Auto Refactor */
-class Configuration extends SystemModule
+class Configuration extends Controller
 {
     protected $endpointRoutes = ['getCurrentTimeZone', 'getLandingPageData', 'saveLandingPage', 'changePass', 'changeTimeZone', 'resetPineapple', 'haltPineapple', 'rebootPineapple', 'getLandingPageStatus', 'getAutoStartStatus', 'enableLandingPage', 'disableLandingPage', 'enableAutoStart', 'disableAutoStart', 'getButtonScript', 'saveButtonScript', 'getDevice', 'getDeviceConfig'];
 

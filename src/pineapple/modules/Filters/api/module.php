@@ -1,7 +1,7 @@
 <?php namespace frieren\core;
 
 /* Code modified by Frieren Auto Refactor */
-class Filters extends SystemModule
+class Filters extends Controller
 {
     protected $endpointRoutes = ['getClientData', 'getSSIDData', 'toggleClientMode', 'toggleSSIDMode', 'addClient', 'addClients', 'addSSID', 'removeClient', 'removeSSID', 'removeSSIDs', 'removeClients'];
     private $dbConnection;

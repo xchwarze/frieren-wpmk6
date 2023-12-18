@@ -1,7 +1,7 @@
 <?php namespace frieren\core;
 
 /* Code modified by Frieren Auto Refactor */
-class Reporting extends SystemModule
+class Reporting extends Controller
 {
     protected $endpointRoutes = ['getReportConfiguration', 'getReportContents', 'getEmailConfiguration', 'setReportConfiguration', 'setReportContents', 'setEmailConfiguration', 'testReportConfiguration'];
 

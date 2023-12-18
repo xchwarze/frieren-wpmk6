@@ -1,7 +1,7 @@
 <?php namespace frieren\core;
 
 /* Code modified by Frieren Auto Refactor */
-class ModuleManager extends SystemModule
+class ModuleManager extends Controller
 {
     protected $endpointRoutes = ['getAvailableModules', 'getInstalledModules', 'installModule', 'downloadModule', 'checkDestination', 'removeModule', 'downloadStatus', 'installStatus', 'restoreSDcardModules'];
 

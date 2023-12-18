@@ -1,7 +1,7 @@
 <?php namespace frieren\core;
 
 /* Code modified by Frieren Auto Refactor */
-class Tracking extends SystemModule
+class Tracking extends Controller
 {
     protected $endpointRoutes = ['getScript', 'saveScript', 'getTrackingList', 'addMac', 'removeMac', 'clearMacs'];
     const DATABASE = "/etc/pineapple/filters.db";

@@ -6,7 +6,7 @@ require_once('AccessPoint.php');
 require_once('ClientMode.php');
 require_once('Interfaces.php');
 
-class Networking extends SystemModule
+class Networking extends Controller
 {
     protected $endpointRoutes = ['getRoutingTable', 'restartDNS', 'updateRoute', 'getAdvancedData', 'setHostname', 'resetWirelessConfig', 'getInterfaceList', 'saveAPConfig', 'getAPConfig', 'getMacData', 'setMac', 'setRandomMac', 'resetMac', 'scanForNetworks', 'getClientInterfaces', 'connectToAP', 'checkConnection', 'disconnect', 'getOUI', 'getFirewallConfig', 'setFirewallConfig', 'saveWirelessConfig', 'getInfoData', 'interfaceActions'];
 

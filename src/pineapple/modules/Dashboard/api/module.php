@@ -4,7 +4,7 @@
 
 '';
 
-class Dashboard extends SystemModule
+class Dashboard extends Controller
 {
     protected $endpointRoutes = ['getOverviewData', 'getLandingPageData', 'getBulletins'];
     private $dbConnection;

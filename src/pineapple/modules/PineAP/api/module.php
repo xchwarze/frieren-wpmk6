@@ -4,7 +4,7 @@
 
 require_once('/pineapple/modules/PineAP/api/PineAPHelper.php');
 
-class PineAP extends SystemModule
+class PineAP extends Controller
 {
     protected $endpointRoutes = ['getPool', 'clearPool', 'addSSID', 'addSSIDs', 'removeSSID', 'getPoolLocation', 'setPoolLocation', 'clearSessionCounter', 'setPineAPSettings', 'getPineAPSettings', 'setEnterpriseSettings', 'getEnterpriseSettings', 'detectEnterpriseCertificate', 'generateEnterpriseCertificate', 'clearEnterpriseCertificate', 'clearEnterpriseDB', 'getEnterpriseData', 'startHandshakeCapture', 'stopHandshakeCapture', 'getHandshake', 'getAllHandshakes', 'checkCaptureStatus', 'downloadHandshake', 'downloadAllHandshakes', 'clearAllHandshakes', 'deleteHandshake', 'deauth', 'enable', 'disable', 'enableAutoStart', 'disableAutoStart', 'downloadPineAPPool', 'loadProbes', 'inject', 'countSSIDs', 'downloadJTRHashes', 'downloadHashcatHashes'];
     const EAP_USER_FILE = "/etc/pineape/hostapd-pineape.eap_user";
