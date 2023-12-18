@@ -13,7 +13,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
 final class AddAutoRefactorCommentRector extends AbstractRector
 {
-    private $commentText = 'Code modified by Frieren Auto Refactor';
+    private string $commentText = 'Code modified by Frieren Auto Refactor';
 
     /**
      * @return array<class-string<Node>>

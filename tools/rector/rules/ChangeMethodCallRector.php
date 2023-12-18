@@ -16,7 +16,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 
 final class ChangeMethodCallRector extends AbstractRector
 {
-    private $methodNames = [
+    private array $methodNames = [
         // already exist in frieren
         'execBackground', 'checkDependency', 'isSDAvailable', 'checkRunning', 'uciGet',
         'uciSet', 'uciCommit', 'fileGetContentsSSL',
