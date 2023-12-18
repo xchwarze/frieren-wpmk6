@@ -1,7 +1,9 @@
 #!/usr/bin/php-cgi -q
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
-include_once('/pineapple/api/DatabaseConnection.php');
+/* Code modified by Frieren Auto Refactor */
+
+'';
 
 abstract class EncryptionFields
 {
@@ -82,7 +84,7 @@ if (!file_exists($scanDBPath)) {
 	exit("File ${scanDBPath} does not exist\n");
 }
 
-$dbConnection = new DatabaseConnection($scanDBPath);
+$dbConnection = new \frieren\orm\SQLite($scanDBPath);
 if ($dbConnection === NULL) {
 	exit("Unable to create database connection\n");
 }
@@ -93,7 +95,7 @@ if (isset($dbConnection->error['databaseConnectionError'])) {
 
 $data = array();
 $data[$scanID] = array();
-$aps = $dbConnection->query("SELECT scan_id, ssid, bssid, encryption, hidden, channel, signal, wps, last_seen FROM aps WHERE scan_id='%d';", $scanID);
+$aps = $dbConnection->queryLegacy("SELECT scan_id, ssid, bssid, encryption, hidden, channel, signal, wps, last_seen FROM aps WHERE scan_id='%d';", $scanID);
 foreach ($aps as $ap_row) {
     $data[$scanID]['aps'][$ap_row['bssid']] = array();
     $data[$scanID]['aps'][$ap_row['bssid']]['ssid'] = $ap_row['ssid'];
@@ -104,7 +106,7 @@ foreach ($aps as $ap_row) {
     $data[$scanID]['aps'][$ap_row['bssid']]['wps'] = $ap_row['wps'];
     $data[$scanID]['aps'][$ap_row['bssid']]['last_seen'] = $ap_row['last_seen'];
     $data[$scanID]['aps'][$ap_row['bssid']]['clients'] = array();
-    $clients = $dbConnection->query("SELECT scan_id, mac, bssid, last_seen FROM clients WHERE scan_id='%d' AND bssid='%s';", $ap_row['scan_id'], $ap_row['bssid']);
+    $clients = $dbConnection->queryLegacy("SELECT scan_id, mac, bssid, last_seen FROM clients WHERE scan_id='%d' AND bssid='%s';", $ap_row['scan_id'], $ap_row['bssid']);
     foreach ($clients as $client_row) {
         $data[$scanID]['aps'][$ap_row['bssid']]['clients'][$client_row['mac']] = array();
         $data[$scanID]['aps'][$ap_row['bssid']]['clients'][$client_row['mac']]['bssid'] = $client_row['bssid'];
@@ -113,7 +115,7 @@ foreach ($aps as $ap_row) {
 }
 
 $data[$scanID]['outOfRangeClients'] = array();
-$clients = $dbConnection->query("
+$clients = $dbConnection->queryLegacy("
     SELECT t1.mac, t1.bssid, t1.last_seen FROM clients t1
     LEFT JOIN aps t2 ON
     t2.bssid = t1.bssid WHERE t2.bssid IS NULL AND
@@ -126,7 +128,7 @@ foreach ($clients as $client_row) {
 }
 
 $data[$scanID]['unassociatedClients'] = array();
-$clients = $dbConnection->query("SELECT mac FROM clients WHERE bssid='FF:FF:FF:FF:FF:FF' COLLATE NOCASE;");
+$clients = $dbConnection->queryLegacy("SELECT mac FROM clients WHERE bssid='FF:FF:FF:FF:FF:FF' COLLATE NOCASE;");
 
 foreach ($clients as $client_row) {
     $data[$scanID]['unassociatedClients'][] = $client_row['mac'];

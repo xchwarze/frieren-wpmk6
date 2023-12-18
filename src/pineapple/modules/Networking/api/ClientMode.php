@@ -1,8 +1,9 @@
 <?php namespace helper;
 
+/* Code modified by Frieren Auto Refactor */
 class ClientMode
 {
-    public function scanForNetworks($interface, $uciID, $radio)
+    protected function scanForNetworks($interface, $uciID, $radio)
     {
         $interface = escapeshellarg($interface);
         if (substr($interface, -4, -1) === "mon") {
@@ -52,7 +53,7 @@ class ClientMode
         return $returnArray;
     }
 
-    public function connectToAP($uciID, $ap, $key, $radioID)
+    protected function connectToAP($uciID, $ap, $key, $radioID)
     {
         exec('[ ! -z "$(wifi config)" ] && wifi config >> /etc/config/wireless');
 
@@ -117,7 +118,7 @@ class ClientMode
         return ["success" => true];
     }
 
-    public function checkConnection()
+    protected function checkConnection()
     {
         $connection = exec('iwconfig 2>&1 | grep ESSID:\"');
         if (trim($connection)) {
@@ -133,7 +134,7 @@ class ClientMode
         return ["connected" => false];
     }
 
-    public function disconnect($uciID, $radioID)
+    protected function disconnect($uciID, $radioID)
     {
         uciSet("wireless.@wifi-iface[{$uciID}].network", 'lan', false);
         uciSet("wireless.@wifi-iface[{$uciID}].ssid", '', false);

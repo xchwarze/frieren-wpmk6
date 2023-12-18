@@ -1,10 +1,11 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 class PineAPHelper
 {
     CONST CLI_PINEAPD = "/usr/sbin/pineapd";
 
-    public function getSetting($settingKey)
+    protected function getSetting($settingKey)
     {
         $configFile = file_get_contents("/tmp/pineap.conf");
 
@@ -27,7 +28,7 @@ class PineAPHelper
         return false;
     }
 
-    public function setSetting($settingKey, $settingVal)
+    protected function setSetting($settingKey, $settingVal)
     {
         $configFile = file_get_contents("/tmp/pineap.conf");
         $configFileOut = "";
@@ -52,7 +53,7 @@ class PineAPHelper
         return true;
     }
 
-    public function enableAssociations()
+    protected function enableAssociations()
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             exec("pineap /tmp/pineap.conf karma on");
@@ -63,7 +64,7 @@ class PineAPHelper
         return true;
     }
 
-    public function disableAssociations()
+    protected function disableAssociations()
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             exec("pineap /tmp/pineap.conf karma off");
@@ -74,19 +75,19 @@ class PineAPHelper
         return true;
     }
 
-    public function enablePineAP()
+    protected function enablePineAP()
     {
         exec('/etc/init.d/pineapd start');
         return true;
     }
 
-    public function disablePineAP()
+    protected function disablePineAP()
     {
         exec('/etc/init.d/pineapd stop');
         return true;
     }
 
-    public function enableLogging()
+    protected function enableLogging()
     {
         if (\helper\checkRunning('/usr/sbin/pineapd')) {
             exec("pineap /tmp/pineap.conf logging on");
@@ -97,7 +98,7 @@ class PineAPHelper
         return true;
     }
 
-    public function disableLogging()
+    protected function disableLogging()
     {
         $this->setSetting("logging", "off");
         if (\helper\checkRunning('/usr/sbin/pineapd')) {
@@ -106,7 +107,7 @@ class PineAPHelper
         return true;
     }
 
-    public function enableBeaconer()
+    protected function enableBeaconer()
     {
         $this->setSetting("broadcast_ssid_pool", "on");
         if (\helper\checkRunning('/usr/sbin/pineapd')) {
@@ -115,7 +116,7 @@ class PineAPHelper
         return true;
     }
 
-    public function disableBeaconer()
+    protected function disableBeaconer()
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             exec('pineap /tmp/pineap.conf broadcast_pool off');
@@ -125,7 +126,7 @@ class PineAPHelper
         return true;
     }
 
-    public function enableResponder()
+    protected function enableResponder()
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             exec('pineap /tmp/pineap.conf beacon_responses on');
@@ -135,7 +136,7 @@ class PineAPHelper
         return true;
     }
 
-    public function disableResponder()
+    protected function disableResponder()
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             exec('pineap /tmp/pineap.conf beacon_responses off');
@@ -145,7 +146,7 @@ class PineAPHelper
         return true;
     }
 
-    public function enableHarvester()
+    protected function enableHarvester()
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             exec('pineap /tmp/pineap.conf capture_ssids on');
@@ -155,7 +156,7 @@ class PineAPHelper
         return true;
     }
 
-    public function disableHarvester()
+    protected function disableHarvester()
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             exec('pineap /tmp/pineap.conf capture_ssids off');
@@ -165,7 +166,7 @@ class PineAPHelper
         return true;
     }
 
-    public function enableConnectNotifications()
+    protected function enableConnectNotifications()
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             exec('pineap /tmp/pineap.conf connect_notifications on');
@@ -175,7 +176,7 @@ class PineAPHelper
         return true;
     }
 
-    public function disableConnectNotifications()
+    protected function disableConnectNotifications()
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             exec('pineap /tmp/pineap.conf connect_notifications off');
@@ -185,7 +186,7 @@ class PineAPHelper
         return true;
     }
 
-    public function enableDisconnectNotifications()
+    protected function enableDisconnectNotifications()
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             exec('pineap /tmp/pineap.conf disconnect_notifications on');
@@ -195,7 +196,7 @@ class PineAPHelper
         return true;
     }
 
-    public function disableDisconnectNotifications()
+    protected function disableDisconnectNotifications()
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             exec('pineap /tmp/pineap.conf disconnect_notifications off');
@@ -205,17 +206,17 @@ class PineAPHelper
         return true;
     }
 
-    public function getTarget()
+    protected function getTarget()
     {
         return $this->getSetting("target_mac");
     }
 
-    public function getSource()
+    protected function getSource()
     {
         return $this->getSetting("pineap_mac");
     }
 
-    public function setBeaconInterval($interval)
+    protected function setBeaconInterval($interval)
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             $interval = escapeshellarg($interval);
@@ -225,7 +226,7 @@ class PineAPHelper
         }
     }
 
-    public function setResponseInterval($interval)
+    protected function setResponseInterval($interval)
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             $interval = escapeshellarg($interval);
@@ -235,7 +236,7 @@ class PineAPHelper
         }
     }
 
-    public function setSource($mac)
+    protected function setSource($mac)
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             $mac = escapeshellarg($mac);
@@ -245,7 +246,7 @@ class PineAPHelper
         }
     }
 
-    public function setTarget($mac)
+    protected function setTarget($mac)
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             $mac = escapeshellarg($mac);
@@ -255,19 +256,19 @@ class PineAPHelper
         }
     }
 
-    public function deauth($target, $source, $channel, $multiplier = 1)
+    protected function deauth($target, $source, $channel, $multiplier = 1)
     {
         $channel = str_pad($channel, 2, "0", STR_PAD_LEFT);
         exec("pineap /tmp/pineap.conf deauth $source $target $channel $multiplier");
         return true;
     }
 
-    public function getPineapInterface()
+    protected function getPineapInterface()
     {
         return $this->getSetting("pineap_interface");
     }
 
-    public function setPineapInterface($interface)
+    protected function setPineapInterface($interface)
     {
         if (\helper\checkRunning(self::CLI_PINEAPD)) {
             $this->disablePineAP();

@@ -1,60 +1,20 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 class ModuleManager extends SystemModule
 {
-    public function route()
-    {
-        switch ($this->request->action) {
-            case 'getAvailableModules':
-                $this->getAvailableModules();
-                break;
-
-            case 'getInstalledModules':
-                $this->getInstalledModules();
-                break;
-
-            case 'installModule':
-                $this->installModule();
-                break;
-
-            case 'downloadModule':
-                $this->downloadModule();
-                break;
-
-            case 'checkDestination':
-                $this->checkDestination();
-                break;
-
-            case 'removeModule':
-                $this->removeModule();
-                break;
-
-            case 'downloadStatus':
-                $this->downloadStatus();
-                break;
-
-            case 'installStatus':
-                $this->installStatus();
-                break;
-
-            case 'restoreSDcardModules':
-                if ($this->sdReaderPresent()) {
-                    $this->restoreSDcardModules();
-                }
-                break;
-        }
-    }
+    protected $endpointRoutes = ['getAvailableModules', 'getInstalledModules', 'installModule', 'downloadModule', 'checkDestination', 'removeModule', 'downloadStatus', 'installStatus', 'restoreSDcardModules'];
 
     private function getAvailableModules()
     {
-        $moduleData = @$this->fileGetContentsSSL(self::REMOTE_URL . "/modules/build/modules.json");
+        $moduleData = @$this->systemHelper->fileGetContentsSSL(self::REMOTE_URL . "/modules/build/modules.json");
         if ($moduleData !== false) {
             $moduleData = json_decode($moduleData);
             if (json_last_error() === JSON_ERROR_NONE) {
-                $this->response = array('availableModules' => $moduleData);
+                $this->responseHandler->setData(array('availableModules' => $moduleData));
             }
         } else {
-            $this->error = 'Error connecting to ' . self::REMOTE_NAME . '. Please check your connection.';
+            $this->responseHandler->setError('Error connecting to ' . self::REMOTE_NAME . '. Please check your connection.');
         }
     }
 
@@ -91,40 +51,40 @@ class ModuleManager extends SystemModule
                 $modules[$moduleDirectory] = $module;
             }
         }
-        $this->response = array("installedModules" => $modules);
+        $this->responseHandler->setData(array("installedModules" => $modules));
     }
 
     private function downloadModule()
     {
         @unlink('/tmp/moduleDownloaded');
 
-        if ($this->request->destination === 'sd') {
+        if ($this->request['destination'] === 'sd') {
             @mkdir('/sd/tmp/');
             $dest = '/sd/tmp/';
         } else {
             $dest = '/tmp/';
         }
 
-        $module = "{$this->request->moduleName}.tar.gz";
-        $this->execBackground("uclient-fetch -q -T 10 -O {$dest}{$module} '" . self::REMOTE_URL . "/modules/build/{$module}' && touch /tmp/moduleDownloaded");
-        $this->response = array('success' => true);
+        $module = "{$this->request['moduleName']}.tar.gz";
+        $this->systemHelper->execBackground("uclient-fetch -q -T 10 -O {$dest}{$module} '" . self::REMOTE_URL . "/modules/build/{$module}' && touch /tmp/moduleDownloaded");
+        $this->responseHandler->setData(array('success' => true));
     }
 
     private function downloadStatus()
     {
         if (file_exists('/tmp/moduleDownloaded')) {
-            if ($this->request->destination === 'sd') {
+            if ($this->request['destination'] === 'sd') {
                 $dest = '/sd/tmp/';
             } else {
                 $dest = '/tmp/';
             }
 
-            if (hash_file('sha256', "{$dest}{$this->request->moduleName}.tar.gz") == $this->request->checksum) {
-                $this->response = array('success' => true);
+            if (hash_file('sha256', "{$dest}{$this->request['moduleName']}.tar.gz") == $this->request['checksum']) {
+                $this->responseHandler->setData(array('success' => true));
                 return;
             }
         }
-        $this->response = array('success' => false);
+        $this->responseHandler->setData(array('success' => false));
     }
 
     private function installModule()
@@ -132,47 +92,47 @@ class ModuleManager extends SystemModule
         @unlink('/tmp/moduleInstalled');
         $this->removeModule();
 
-        if ($this->request->destination === 'sd') {
+        if ($this->request['destination'] === 'sd') {
             @mkdir('/sd/modules/');
             $dest = '/sd/tmp/';
             $installDest = '/sd/modules/';
-            exec("ln -s /sd/modules/{$this->request->moduleName} /pineapple/modules/{$this->request->moduleName}");
+            exec("ln -s /sd/modules/{$this->request['moduleName']} /pineapple/modules/{$this->request['moduleName']}");
         } else {
             $dest = '/tmp/';
             $installDest = '/pineapple/modules/';
         }
 
-        $module = "{$this->request->moduleName}.tar.gz";
-        $this->execBackground("tar -xzvC {$installDest} -f {$dest}{$module} && rm {$dest}{$module} && touch /tmp/moduleInstalled");
-        $this->response = array('success' => true);
+        $module = "{$this->request['moduleName']}.tar.gz";
+        $this->systemHelper->execBackground("tar -xzvC {$installDest} -f {$dest}{$module} && rm {$dest}{$module} && touch /tmp/moduleInstalled");
+        $this->responseHandler->setData(array('success' => true));
     }
 
     private function installStatus()
     {
-        $this->response = array('success' => file_exists('/tmp/moduleInstalled'));
+        $this->responseHandler->setData(array('success' => file_exists('/tmp/moduleInstalled')));
     }
 
     private function checkDestination()
     {
-        $config = $this->getDeviceConfig();
-        $this->response = array(
-            'module' => $this->request->name,
-            'internal' => (disk_free_space('/') > ($this->request->size + 150000) && $config['useInternalStorage']),
-            'sd' => ($this->isSDAvailable() && $config['useUSBStorage']),
-        );
+        $config = $this->systemHelper->getDeviceConfig();
+        $this->responseHandler->setData(array(
+            'module' => $this->request['name'],
+            'internal' => (disk_free_space('/') > ($this->request['size'] + 150000) && $config['useInternalStorage']),
+            'sd' => ($this->systemHelper->isSDAvailable() && $config['useUSBStorage']),
+        ));
     }
 
     private function removeModule()
     {
-        $path = "/pineapple/modules/{$this->request->moduleName}";
+        $path = "/pineapple/modules/{$this->request['moduleName']}";
         if (is_link($path)) {
             @unlink($path);
-            exec("rm -rf /sd/modules/{$this->request->moduleName}");
+            exec("rm -rf /sd/modules/{$this->request['moduleName']}");
         } else {
             exec("rm -rf {$path}");
         }
 
-        $this->response = array('success' => true);
+        $this->responseHandler->setData(array('success' => true));
     }
 
     private function restoreSDcardModules()
@@ -185,6 +145,6 @@ class ModuleManager extends SystemModule
                 exec("ln -s /sd/modules/{$module} /pineapple/modules/{$module}");
             }
         }
-        $this->response = array("restored" => $restored);
+        $this->responseHandler->setData(array("restored" => $restored));
     }
 }

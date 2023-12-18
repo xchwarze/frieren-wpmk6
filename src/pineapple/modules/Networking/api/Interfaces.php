@@ -1,8 +1,9 @@
 <?php namespace helper;
 
+/* Code modified by Frieren Auto Refactor */
 class Interfaces
 {
-    public function getMacData()
+    protected function getMacData()
     {
         $macData = [];
         exec("ifconfig -a | grep wlan | awk '{print \$1\" \"\$5}'", $interfaceArray);
@@ -14,7 +15,7 @@ class Interfaces
         return array_reverse($macData);
     }
 
-    public function getUciID($interface)
+    protected function getUciID($interface)
     {
         $interfaceNumber = str_replace("wlan", "", $interface);
         if ($interfaceNumber === "0") {
@@ -28,7 +29,7 @@ class Interfaces
         return (intval($interfaceNumber) + 2);
     }
 
-    public function getRadioID($interface)
+    protected function getRadioID($interface)
     {
         exec('wifi status', $wifiStatus);
         $radioArray = json_decode(implode("\n", $wifiStatus));
@@ -42,7 +43,7 @@ class Interfaces
         return false;
     }
 
-    public function setMac($random, $interface, $newMac, $forceReload)
+    protected function setMac($random, $interface, $newMac, $forceReload)
     {
         $uciID = $this->getUciID($interface);
         $interface = escapeshellarg($interface);
@@ -64,7 +65,7 @@ class Interfaces
         return ["success" => true, "uci" => $uciID];
     }
 
-    public function resetMac($interface)
+    protected function resetMac($interface)
     {
         $uciID = $this->getUciID($interface);
         exec("uci set wireless.@wifi-iface[{$uciID}].macaddr=''");
@@ -72,19 +73,19 @@ class Interfaces
         return ["success" => true];
     }
 
-    public function resetWirelessConfig()
+    protected function resetWirelessConfig()
     {
         execBackground("wifi config > /etc/config/wireless && wifi");
         return ["success" => true];
     }
 
-    public function getInterfaceList()
+    protected function getInterfaceList()
     {
         exec("ifconfig -a | grep encap:Ethernet | awk '{print \$1\",\"\$5}'", $interfaceArray);
         return $interfaceArray;
     }
 
-    public function getClientInterfaces()
+    protected function getClientInterfaces()
     {
         $clientInterfaces = [];
         exec("ifconfig -a | grep wlan | awk '{print \$1}'", $interfaceArray);

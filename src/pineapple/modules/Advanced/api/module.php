@@ -1,7 +1,9 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 class Advanced extends SystemModule
 {
+    protected $endpointRoutes = ['getResources', 'dropCaches', 'getUSB', 'getFstab', 'saveFstab', 'getCSS', 'saveCSS', 'formatSDCard', 'formatSDCardStatus', 'checkForUpgrade', 'downloadUpgrade', 'getDownloadStatus', 'performUpgrade', 'getCurrentVersion', 'checkApiToken', 'addApiToken', 'getApiTokens', 'revokeApiToken'];
     private $dbConnection;
 
     const DATABASE = "/etc/pineapple/pineapple.db";
@@ -12,87 +14,8 @@ class Advanced extends SystemModule
     public function __construct($request)
     {
         parent::__construct($request, __CLASS__);
-        $this->dbConnection = new DatabaseConnection(self::DATABASE);
-        $this->dbConnection->exec("CREATE TABLE IF NOT EXISTS api_tokens (token VARCHAR NOT NULL, name VARCHAR NOT NULL);");
-    }
-
-    public function route()
-    {
-        switch ($this->request->action) {
-            case 'getResources':
-                $this->getResources();
-                break;
-
-            case 'dropCaches':
-                $this->dropCaches();
-                break;
-
-            case 'getUSB':
-                $this->getUSB();
-                break;
-
-            case 'getFstab':
-                $this->getFstab();
-                break;
-
-            case 'saveFstab':
-                $this->saveFstab();
-                break;
-
-            case 'getCSS':
-                $this->getCSS();
-                break;
-
-            case 'saveCSS':
-                $this->saveCSS();
-                break;
-
-            case 'formatSDCard':
-                if ($this->sdReaderPresent()) {
-                    $this->formatSDCard();
-                }
-                break;
-
-            case 'formatSDCardStatus':
-                $this->formatSDCardStatus();
-                break;
-
-            case 'checkForUpgrade':
-                $this->checkForUpgrade();
-                break;
-
-            case 'downloadUpgrade':
-                $this->downloadUpgrade();
-                break;
-
-            case 'getDownloadStatus':
-                $this->getDownloadStatus();
-                break;
-
-            case 'performUpgrade':
-                $this->performUpgrade();
-                break;
-
-            case 'getCurrentVersion':
-                $this->getCurrentVersion();
-                break;
-
-            case 'checkApiToken':
-                $this->checkApiToken();
-                break;
-
-            case 'addApiToken':
-                $this->addApiToken();
-                break;
-
-            case 'getApiTokens':
-                $this->getApiTokens();
-                break;
-
-            case 'revokeApiToken':
-                $this->revokeApiToken();
-                break;
-        }
+        $this->dbConnection = new \frieren\orm\SQLite(self::DATABASE);
+        $this->dbConnection->execLegacy("CREATE TABLE IF NOT EXISTS api_tokens (token VARCHAR NOT NULL, name VARCHAR NOT NULL);");
     }
 
     private function getResources()
@@ -103,58 +26,58 @@ class Advanced extends SystemModule
         exec('free -m', $freeMem);
         $freeMem = implode("\n", $freeMem);
 
-        $this->response = ["freeDisk" => $freeDisk, "freeMem" => $freeMem];
+        $this->responseHandler->setData(["freeDisk" => $freeDisk, "freeMem" => $freeMem]);
     }
 
     private function dropCaches()
     {
-        $this->execBackground('echo 3 > /proc/sys/vm/drop_caches');
-        $this->response = ['success' => true];
+        $this->systemHelper->execBackground('echo 3 > /proc/sys/vm/drop_caches');
+        $this->responseHandler->setData(['success' => true]);
     }
 
     private function getUSB()
     {
         exec('lsusb', $lsusb);
         $lsusb = implode("\n", $lsusb);
-        $this->response = ['lsusb' => $lsusb];
+        $this->responseHandler->setData(['lsusb' => $lsusb]);
     }
 
     private function getFstab()
     {
         $fstab = file_get_contents('/etc/config/fstab');
-        $this->response = ['fstab' => $fstab];
+        $this->responseHandler->setData(['fstab' => $fstab]);
     }
 
     private function saveFstab()
     {
-        if (isset($this->request->fstab)) {
-            file_put_contents('/etc/config/fstab', $this->request->fstab);
-            $this->response = ['success' => true];
+        if (isset($this->request['fstab'])) {
+            file_put_contents('/etc/config/fstab', $this->request['fstab']);
+            $this->responseHandler->setData(['success' => true]);
         }
     }
 
     private function getCSS()
     {
         $css = file_get_contents('/pineapple/css/main.css');
-        $this->response = ['css' => $css];
+        $this->responseHandler->setData(['css' => $css]);
     }
 
     private function saveCSS()
     {
-        if (isset($this->request->css)) {
-            file_put_contents('/pineapple/css/main.css', $this->request->css);
-            $this->response = ['success' => true];
+        if (isset($this->request['css'])) {
+            file_put_contents('/pineapple/css/main.css', $this->request['css']);
+            $this->responseHandler->setData(['success' => true]);
         }
     }
 
     private function checkForUpgrade()
     {
-        $upgradeData = @$this->fileGetContentsSSL(self::REMOTE_URL . "/json/upgrades.json");
+        $upgradeData = @$this->systemHelper->fileGetContentsSSL(self::REMOTE_URL . "/json/upgrades.json");
         if ($upgradeData !== false) {
             $upgradeData = json_decode($upgradeData, true);
             if (json_last_error() === JSON_ERROR_NONE) {
                 if ($this->compareFirmwareVersion($upgradeData['version']) === true) {
-                    $board = $this->getBoard();
+                    $board = $this->systemHelper->getBoard();
                     if ($upgradeData['hotpatch'] != null) {
                         $hotpatch = base64_decode($upgradeData['hotpatch']);
                         file_put_contents($hotpatch, self::UP_PATCH);
@@ -164,13 +87,13 @@ class Advanced extends SystemModule
                     }
 
                     unset($upgradeData['updates']);
-                    $this->response = ["upgrade" => true, "upgradeData" => $upgradeData];
+                    $this->responseHandler->setData(["upgrade" => true, "upgradeData" => $upgradeData]);
                 } else {
-                    $this->error = "No upgrade found.";
+                    $this->responseHandler->setError("No upgrade found.");
                 }
             }
         } else {
-            $this->error = "Error connecting to " . self::REMOTE_NAME . ". Please check your connection.";
+            $this->responseHandler->setError("Error connecting to " . self::REMOTE_NAME . ". Please check your connection.");
         }
     }
 
@@ -182,35 +105,35 @@ class Advanced extends SystemModule
 
         @unlink(self::UP_PATH);
         @unlink(self::UP_FLAG);
-        $url = escapeshellarg($this->request->upgradeUrl);
-        $this->execBackground("uclient-fetch -q -T 10 -O " . self::UP_PATH . " {$url} && touch " . self::UP_FLAG);
-        $this->response = ["success" => true];
+        $url = escapeshellarg($this->request['upgradeUrl']);
+        $this->systemHelper->execBackground("uclient-fetch -q -T 10 -O " . self::UP_PATH . " {$url} && touch " . self::UP_FLAG);
+        $this->responseHandler->setData(["success" => true]);
     }
 
     private function getDownloadStatus()
     {
         if (file_exists(self::UP_FLAG)) {
             $fileHash = hash_file('sha256', self::UP_PATH);
-            if ((bool)$this->request->isManuelUpdate) {
+            if ((bool)$this->request['isManuelUpdate']) {
                 $bytes = filesize(self::UP_PATH);
                 $sz = 'BKMGTP';
                 $factor = floor((strlen($bytes) - 1) / 3);
   
-                $this->response = [
+                $this->responseHandler->setData([
                     "completed" => true,
                     "sha256" => $fileHash,
                     "downloaded" => sprintf("%.2f", $bytes / pow(1024, $factor)) . @$sz[$factor]
-                ];
-            } else if ($fileHash == $this->request->checksum) {
-                $this->response = ["completed" => true];
+                ]);
+            } else if ($fileHash == $this->request['checksum']) {
+                $this->responseHandler->setData(["completed" => true]);
             } else {
-                $this->error = "Checksum mismatch";
+                $this->responseHandler->setError("Checksum mismatch");
             }
         } else {
-            $this->response = [
+            $this->responseHandler->setData([
                 "completed" => false,
                 "downloaded" => filesize(self::UP_PATH)
-            ];
+            ]);
         }
     }
 
@@ -218,80 +141,80 @@ class Advanced extends SystemModule
     {
         if (file_exists(self::UP_PATH)) {
             $params = "-n";
-            if ($this->request->keepSettings) {
+            if ($this->request['keepSettings']) {
                 $params = "";
             }
 
-            $this->execBackground("sysupgrade {$params} " . self::UP_PATH);
-            $this->response = ["success" => true];
+            $this->systemHelper->execBackground("sysupgrade {$params} " . self::UP_PATH);
+            $this->responseHandler->setData(["success" => true]);
         } else {
-            $this->error = "Upgrade failed.";
+            $this->responseHandler->setError("Upgrade failed.");
         }
     }
 
     private function compareFirmwareVersion($version)
     {
-        return version_compare($this->getFirmwareVersion(), $version, '<');
+        return version_compare($this->systemHelper->getFirmwareVersion(), $version, '<');
     }
 
     private function getCurrentVersion()
     {
-        $this->response = ["firmwareVersion" => $this->getFirmwareVersion()];
+        $this->responseHandler->setData(["firmwareVersion" => $this->systemHelper->getFirmwareVersion()]);
     }
 
     private function formatSDCard()
     {
-        $this->execBackground("/pineapple/modules/Advanced/formatSD/format_sd");
-        $this->response = ['success' => true];
+        $this->systemHelper->execBackground("/pineapple/modules/Advanced/formatSD/format_sd");
+        $this->responseHandler->setData(['success' => true]);
     }
 
     private function formatSDCardStatus()
     {
-        $this->response = ['success' => (!file_exists('/tmp/sd_format.progress'))];
+        $this->responseHandler->setData(['success' => (!file_exists('/tmp/sd_format.progress'))]);
     }
 
     private function getApiTokens()
     {
-        $tokens = $this->dbConnection->query("SELECT ROWID, token, name FROM api_tokens;");
-        $this->response = ["tokens" => $tokens];
+        $tokens = $this->dbConnection->queryLegacy("SELECT ROWID, token, name FROM api_tokens;");
+        $this->responseHandler->setData(["tokens" => $tokens]);
     }
 
     private function checkApiToken()
     {
-        if (isset($this->request->token)) {
-            $token = $this->request->token;
-            $result = $this->dbConnection->query("SELECT token FROM api_tokens WHERE token='%s';", $token);
+        if (isset($this->request['token'])) {
+            $token = $this->request['token'];
+            $result = $this->dbConnection->queryLegacy("SELECT token FROM api_tokens WHERE token='%s';", $token);
             if (!empty($result) && isset($result[0]["token"]) && $result[0]["token"] === $token) {
-                $this->response = ["valid" => true];
+                $this->responseHandler->setData(["valid" => true]);
                 return;
             }
         }
 
-        $this->response = ["valid" => false];
+        $this->responseHandler->setData(["valid" => false]);
     }
 
     private function addApiToken()
     {
-        if (isset($this->request->name)) {
+        if (isset($this->request['name'])) {
             $token = hash('sha512', random_bytes(32));
-            $name = $this->request->name;
-            $this->dbConnection->exec("INSERT INTO api_tokens(token, name) VALUES('%s','%s');", $token, $name);
-            $this->response = ["success" => true, "token" => $token, "name" => $name];
+            $name = $this->request['name'];
+            $this->dbConnection->execLegacy("INSERT INTO api_tokens(token, name) VALUES('%s','%s');", $token, $name);
+            $this->responseHandler->setData(["success" => true, "token" => $token, "name" => $name]);
         } else {
-            $this->error = "Missing token name";
+            $this->responseHandler->setError("Missing token name");
         }
     }
 
     private function revokeApiToken()
     {
-        if (isset($this->request->id)) {
-            $this->dbConnection->exec("DELETE FROM api_tokens WHERE ROWID='%s'", $this->request->id);
-        } elseif (isset($this->request->token)) {
-            $this->dbConnection->exec("DELETE FROM api_tokens WHERE token='%s'", $this->request->token);
-        } elseif (isset($this->request->name)) {
-            $this->dbConnection->exec("DELETE FROM api_tokens WHERE name='%s'", $this->request->name);
+        if (isset($this->request['id'])) {
+            $this->dbConnection->execLegacy("DELETE FROM api_tokens WHERE ROWID='%s'", $this->request['id']);
+        } elseif (isset($this->request['token'])) {
+            $this->dbConnection->execLegacy("DELETE FROM api_tokens WHERE token='%s'", $this->request['token']);
+        } elseif (isset($this->request['name'])) {
+            $this->dbConnection->execLegacy("DELETE FROM api_tokens WHERE name='%s'", $this->request['name']);
         } else {
-            $this->error = "The revokeApiToken API call requires either a 'id', 'token', or 'name' parameter";
+            $this->responseHandler->setError("The revokeApiToken API call requires either a 'id', 'token', or 'name' parameter");
         }
     }
 }

@@ -1,9 +1,12 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
-require_once('DatabaseConnection.php');
+/* Code modified by Frieren Auto Refactor */
+
+'';
 
 class API
 {
+    protected $endpointRoutes = [];
     private $request;
     private $response;
     private $error;
@@ -14,13 +17,13 @@ class API
     {
         $this->request = @json_decode(file_get_contents('php://input'));
         if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->error = 'Invalid JSON';
+            $this->responseHandler->setError('Invalid JSON');
         }
-        $this->dbConnection = new DatabaseConnection(self::DATABASE);
+        $this->dbConnection = new \frieren\orm\SQLite(self::DATABASE);
         $this->setCSRFToken();
     }
 
-    public function setCSRFToken()
+    protected function setCSRFToken()
     {
         if (session_status() == PHP_SESSION_NONE) {
             session_start();
@@ -33,53 +36,42 @@ class API
         }
     }
 
-    public function authenticated()
+    protected function authenticated()
     {
         if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
             if (isset($_SERVER['HTTP_X_XSRF_TOKEN']) && $_SERVER['HTTP_X_XSRF_TOKEN'] === $_SESSION['XSRF-TOKEN']) {
                 return true;
             }
 
-            $this->error = "Invalid CSRF token";
+            $this->responseHandler->setError("Invalid CSRF token");
             return false;
         }
 
-        if (isset($this->request->system)) {
-            if (($this->request->system === 'authentication' && isset($this->request->action) && $this->request->action === 'login')
-                || ($this->request->system === 'setup' && file_exists('/etc/pineapple/setupRequired'))) {
+        if (isset($this->request['system'])) {
+            if (($this->request['system'] === 'authentication' && isset($this->request['action']) && $this->request['action'] === 'login')
+                || ($this->request['system'] === 'setup' && file_exists('/etc/pineapple/setupRequired'))) {
                 return true;
             }
         }
 
-        if (isset($this->request->apiToken)) {
-            $token = $this->request->apiToken;
-            $result = $this->dbConnection->query("SELECT token FROM api_tokens WHERE token='%s';", $token);
+        if (isset($this->request['apiToken'])) {
+            $token = $this->request['apiToken'];
+            $result = $this->dbConnection->queryLegacy("SELECT token FROM api_tokens WHERE token='%s';", $token);
             if (!empty($result) && isset($result[0]["token"]) && $result[0]["token"] === $token) {
                 return true;
             }
         }
 
         if (file_exists('/etc/pineapple/setupRequired')) {
-            $this->response = ['error' => 'Not Authenticated', 'setupRequired' => true];
+            $this->responseHandler->setData(['error' => 'Not Authenticated', 'setupRequired' => true]);
         } else {
-            $this->error = "Not Authenticated";
+            $this->responseHandler->setError("Not Authenticated");
         }
 
         return false;
     }
 
-    public function route()
-    {
-        if (isset($this->request->system) && !empty($this->request->system)) {
-            $this->routeToSystem($this->request->system);
-        } elseif (isset($this->request->module) && !empty($this->request->module)) {
-            $this->routeToModule($this->request->module);
-        } else {
-            $this->error = "Invalid request";
-        }
-    }
-
-    public function finalize()
+    protected function finalize()
     {
         if ($this->error) {
             return ")]}',\n" . json_encode(["error" => $this->error]);
@@ -103,12 +95,12 @@ class API
         }
 
         if (empty($moduleClass)) {
-            $this->error = "Module {$moduleName} does not exist or is defined incorrectly";
+            $this->responseHandler->setError("Module {$moduleName} does not exist or is defined incorrectly");
             return null;
         }
 
         if (!class_exists($moduleClass)) {
-            $this->error = "The class {$moduleClass} does not exist in {$moduleFolder}";
+            $this->responseHandler->setError("The class {$moduleClass} does not exist in {$moduleFolder}");
             return null;
         }
 
@@ -126,7 +118,7 @@ class API
 
         $module = new $moduleClass($this->request, $moduleClass);
         $module->route();
-        $this->response = $module->getResponse();
+        $this->responseHandler->setData($module->getResponse());
     }
 
     private function routeToSystem($systemRequest)
@@ -158,15 +150,15 @@ class API
 
         if ($systemComponent !== null) {
             $systemComponent->route();
-            $this->response = $systemComponent->getResponse();
+            $this->responseHandler->setData($systemComponent->getResponse());
         }
     }
 
     private function handleDownload()
     {
-        $this->dbConnection->exec("CREATE TABLE IF NOT EXISTS downloads (token VARCHAR NOT NULL, file VARCHAR NOT NULL, time timestamp default (strftime('%s', 'now')));");
-        $this->dbConnection->exec("DELETE FROM downloads WHERE time < (strftime('%s', 'now')-30)");
-        $result = $this->dbConnection->query('SELECT file from downloads WHERE token="%s";', $_GET['download']);
+        $this->dbConnection->execLegacy("CREATE TABLE IF NOT EXISTS downloads (token VARCHAR NOT NULL, file VARCHAR NOT NULL, time timestamp default (strftime('%s', 'now')));");
+        $this->dbConnection->execLegacy("DELETE FROM downloads WHERE time < (strftime('%s', 'now')-30)");
+        $result = $this->dbConnection->queryLegacy('SELECT file from downloads WHERE token="%s";', $_GET['download']);
         if (isset($result[0])) {
             $this->streamFile($result[0]['file']);
         } else {
@@ -192,7 +184,7 @@ class API
         exit();
     }
 
-    public function handleRequest()
+    protected function handleRequest()
     {
         if (isset($_GET['download'])) {
             $this->handleDownload();

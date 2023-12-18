@@ -1,4 +1,6 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
+
+/* Code modified by Frieren Auto Refactor */
 
 header('Content-Type: application/json');
 

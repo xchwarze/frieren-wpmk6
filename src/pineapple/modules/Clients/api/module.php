@@ -1,7 +1,9 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 class Clients extends SystemModule
 {
+    protected $endpointRoutes = ['getClientData', 'kickClient'];
     private $dbConnection;
 
     public function __construct($request)
@@ -9,21 +11,9 @@ class Clients extends SystemModule
         parent::__construct($request, __CLASS__);
         $this->dbConnection = false;
 
-        $dbLocation = $this->uciGet("pineap.@config[0].hostapd_db_path");
+        $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].hostapd_db_path");
         if (file_exists($dbLocation)) {
-            $this->dbConnection = new DatabaseConnection($dbLocation);
-        }
-    }
-
-    public function route()
-    {
-        switch ($this->request->action) {
-            case 'getClientData':
-                $this->getClientData();
-                break;
-            case 'kickClient':
-                $this->kickClient();
-                break;
+            $this->dbConnection = new \frieren\orm\SQLite($dbLocation);
         }
     }
 
@@ -51,7 +41,7 @@ class Clients extends SystemModule
     private function getSSIDData()
     {
         $ssidData = array();
-        $clientRows = $this->dbConnection->query("SELECT DISTINCT mac,ssid FROM log WHERE log_type=1 ORDER BY updated_at ASC;");
+        $clientRows = $this->dbConnection->queryLegacy("SELECT DISTINCT mac,ssid FROM log WHERE log_type=1 ORDER BY updated_at ASC;");
         foreach ($clientRows as $row) {
             $ssidData[strtolower($row['mac'])] = $row['ssid'];
         }
@@ -100,17 +90,17 @@ class Clients extends SystemModule
                 'host' => $dhcpData[$mac][1],
             ];
         }
-        $this->response = array(
+        $this->responseHandler->setData(array(
             'clients' => $connectedClients
-        );
+        ));
     }
 
     private function kickClient()
     {
-        exec("hostapd_cli -i wlan0 deauthenticate {$this->request->mac}");
-        exec("hostapd_cli -i wlan0 disassociate {$this->request->mac}");
-        exec("hostapd_cli -i wlan0-2 deauthenticate {$this->request->mac}");
-        exec("hostapd_cli -i wlan0-2 disassociate {$this->request->mac}");
-        $this->response = array('success' => true);
+        exec("hostapd_cli -i wlan0 deauthenticate {$this->request['mac']}");
+        exec("hostapd_cli -i wlan0 disassociate {$this->request['mac']}");
+        exec("hostapd_cli -i wlan0-2 deauthenticate {$this->request['mac']}");
+        exec("hostapd_cli -i wlan0-2 disassociate {$this->request['mac']}");
+        $this->responseHandler->setData(array('success' => true));
     }
 }

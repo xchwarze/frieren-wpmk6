@@ -1,5 +1,6 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 abstract class SystemModule extends Module
 {
     protected function changePassword($current, $new)

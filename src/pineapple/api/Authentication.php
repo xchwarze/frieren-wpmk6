@@ -1,9 +1,12 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
-require_once('DatabaseConnection.php');
+/* Code modified by Frieren Auto Refactor */
+
+'';
 
 class Authentication extends APIModule
 {
+    protected $endpointRoutes = ['login', 'logout', 'checkAuth', 'checkApiToken', 'addApiToken', 'getApiTokens'];
     private $dbConnection;
 
     const DATABASE = "/etc/pineapple/pineapple.db";
@@ -11,50 +14,50 @@ class Authentication extends APIModule
     public function __construct($request)
     {
         parent::__construct($request);
-        $this->dbConnection = new DatabaseConnection(self::DATABASE);
-        $this->dbConnection->exec("CREATE TABLE IF NOT EXISTS api_tokens (token VARCHAR NOT NULL, name VARCHAR NOT NULL);");
+        $this->dbConnection = new \frieren\orm\SQLite(self::DATABASE);
+        $this->dbConnection->execLegacy("CREATE TABLE IF NOT EXISTS api_tokens (token VARCHAR NOT NULL, name VARCHAR NOT NULL);");
     }
 
-    public function getApiTokens()
+    protected function getApiTokens()
     {
-        $this->response = array("tokens" => $this->dbConnection->query("SELECT token,name FROM api_tokens;"));
+        $this->responseHandler->setData(array("tokens" => $this->dbConnection->queryLegacy("SELECT token,name FROM api_tokens;")));
     }
 
-    public function checkApiToken()
+    protected function checkApiToken()
     {
-        if (isset($this->request->token)) {
-            $token = $this->request->token;
-            $result = $this->dbConnection->query("SELECT token FROM api_tokens WHERE token='%s';", $token);
+        if (isset($this->request['token'])) {
+            $token = $this->request['token'];
+            $result = $this->dbConnection->queryLegacy("SELECT token FROM api_tokens WHERE token='%s';", $token);
             if (!empty($result) && isset($result[0]["token"]) && $result[0]["token"] === $token) {
-                $this->response = array("valid" => true);
+                $this->responseHandler->setData(array("valid" => true));
                 return;
             }
         }
-        $this->response = array("valid" => false);
+        $this->responseHandler->setData(array("valid" => false));
     }
 
-    public function addApiToken()
+    protected function addApiToken()
     {
-        if (isset($this->request->token) && isset($this->request->name)) {
-            $token = $this->request->token;
-            $name = $this->request->name;
-            $this->dbConnection->exec("INSERT INTO api_tokens(token, name) VALUES('%s','%s');", $token, $name);
-            $this->response = array("success" => true);
+        if (isset($this->request['token']) && isset($this->request['name'])) {
+            $token = $this->request['token'];
+            $name = $this->request['name'];
+            $this->dbConnection->execLegacy("INSERT INTO api_tokens(token, name) VALUES('%s','%s');", $token, $name);
+            $this->responseHandler->setData(array("success" => true));
             return;
         }
-        $this->error = "Missing token or name";
+        $this->responseHandler->setError("Missing token or name");
     }
 
     private function login()
     {
-        if (isset($this->request->username) && isset($this->request->password)) {
-            if ($this->verifyPassword($this->request->password)) {
+        if (isset($this->request['username']) && isset($this->request['password'])) {
+            if ($this->verifyPassword($this->request['password'])) {
                 $_SESSION['logged_in'] = true;
-                $this->response = array("logged_in" => true);
-                if (!isset($this->request->time)) {
+                $this->responseHandler->setData(array("logged_in" => true));
+                if (!isset($this->request['time'])) {
                     return;
                 }
-                $epoch = intval($this->request->time);
+                $epoch = intval($this->request['time']);
                 if ($epoch > 1) {
                     exec('date -s @' . $epoch);
                 }
@@ -62,7 +65,7 @@ class Authentication extends APIModule
             }
         }
 
-        $this->response = array("logged_in" => false);
+        $this->responseHandler->setData(array("logged_in" => false));
     }
 
     private function verifyPassword($password)
@@ -78,7 +81,7 @@ class Authentication extends APIModule
 
     private function logout()
     {
-        $this->response = array("logged_in" => false);
+        $this->responseHandler->setData(array("logged_in" => false));
         unset($_COOKIE['XSRF-TOKEN']);
         setcookie('XSRF-TOKEN', '', time()-3600);
         unset($_SESSION['XSRF-TOKEN']);
@@ -89,47 +92,13 @@ class Authentication extends APIModule
     private function checkAuth()
     {
         if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
-            $this->response = array("authenticated" => true);
+            $this->responseHandler->setData(array("authenticated" => true));
         } else {
             if (file_exists("/etc/pineapple/setupRequired")) {
-                $this->response = array("error" => "Not Authenticated", "setupRequired" => true);
+                $this->responseHandler->setData(array("error" => "Not Authenticated", "setupRequired" => true));
             } else {
-                $this->response = array("error" => "Not Authenticated");
+                $this->responseHandler->setData(array("error" => "Not Authenticated"));
             }
         }
-    }
-
-    public function route()
-    {
-        switch ($this->request->action) {
-            case 'login':
-                $this->login();
-                break;
-
-            case 'logout':
-                $this->logout();
-                break;
-
-            case 'checkAuth':
-                $this->checkAuth();
-                break;
-
-            case 'checkApiToken':
-                $this->checkApiToken();
-                break;
-
-            case 'addApiToken':
-                $this->addApiToken();
-                break;
-
-            case 'getApiTokens':
-                $this->getApiTokens();
-                break;
-
-            default:
-                $this->error = "Unknown action";
-        }
-        
-        session_write_close();
     }
 }

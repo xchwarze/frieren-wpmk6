@@ -1,7 +1,9 @@
 #!/usr/bin/php-cgi
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
-require_once('../../../api/DatabaseConnection.php');
+/* Code modified by Frieren Auto Refactor */
+
+'';
 
 $probesOnly = false;
 
@@ -15,7 +17,7 @@ $logDBPath = exec("uci get pineap.@config[0].hostapd_db_path");
 if (!file_exists($logDBPath)) {
 	exit("File ${logDBPath} does not exist\n");
 }
-$dbConnection = new DatabaseConnection($logDBPath);
+$dbConnection = new \frieren\orm\SQLite($logDBPath);
 if ($dbConnection === NULL) {
 	exit("Unable to create database connection\n");
 }
@@ -27,10 +29,10 @@ $sql = "SELECT * FROM log ORDER BY updated_at DESC;";
 if ($probesOnly) {
     $sql = "SELECT * FROM log WHERE log_type=0 ORDER BY updated_at DESC;";
 }
-$log = $dbConnection->query($sql);
+$log = $dbConnection->queryLegacy($sql);
 
 $clearlog = exec('uci get reporting.@settings[0].clear_log');
 if ($clearlog == '1') {
-	$dbConnection->exec('DELETE FROM log;');
+	$dbConnection->execLegacy('DELETE FROM log;');
 }
 echo json_encode($log, JSON_PRETTY_PRINT);

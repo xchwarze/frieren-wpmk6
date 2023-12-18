@@ -1,43 +1,29 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
-require_once('/pineapple/api/DatabaseConnection.php');
+/* Code modified by Frieren Auto Refactor */
+
+'';
 
 class Dashboard extends SystemModule
 {
+    protected $endpointRoutes = ['getOverviewData', 'getLandingPageData', 'getBulletins'];
     private $dbConnection;
     public function __construct($request)
     {
         parent::__construct($request, __CLASS__);
         $this->dbConnection = false;
         if (file_exists('/tmp/landingpage.db')) {
-            $this->dbConnection = new DatabaseConnection('/tmp/landingpage.db');
-        }
-    }
-
-    public function route()
-    {
-        switch ($this->request->action) {
-            case 'getOverviewData':
-                $this->getOverviewData();
-                break;
-
-            case 'getLandingPageData':
-                $this->getLandingPageData();
-                break;
-            
-            case 'getBulletins':
-                $this->getBulletins();
-                break;
+            $this->dbConnection = new \frieren\orm\SQLite('/tmp/landingpage.db');
         }
     }
 
     private function getOverviewData()
     {
-        $this->response = [
+        $this->responseHandler->setData([
             "cpu" => $this->getCpu(),
             "uptime" => $this->getUptime(),
             "clients" => $this->getClients()
-        ];
+        ]);
     }
 
     private function getCpu()
@@ -73,29 +59,29 @@ class Dashboard extends SystemModule
     {
         if ($this->dbConnection !== false) {
             $stats = [];
-            $stats['Chrome'] = count($this->dbConnection->query('SELECT browser FROM user_agents WHERE browser=\'chrome\';'));
-            $stats['Safari'] = count($this->dbConnection->query('SELECT browser FROM user_agents WHERE browser=\'safari\';'));
-            $stats['Firefox'] = count($this->dbConnection->query('SELECT browser FROM user_agents WHERE browser=\'firefox\';'));
-            $stats['Opera'] = count($this->dbConnection->query('SELECT browser FROM user_agents WHERE browser=\'opera\';'));
-            $stats['Internet Explorer'] = count($this->dbConnection->query('SELECT browser FROM user_agents WHERE browser=\'internet_explorer\';'));
-            $stats['Other'] = count($this->dbConnection->query('SELECT browser FROM user_agents WHERE browser=\'other\';'));
-            $this->response = $stats;
+            $stats['Chrome'] = count($this->dbConnection->queryLegacy('SELECT browser FROM user_agents WHERE browser=\'chrome\';'));
+            $stats['Safari'] = count($this->dbConnection->queryLegacy('SELECT browser FROM user_agents WHERE browser=\'safari\';'));
+            $stats['Firefox'] = count($this->dbConnection->queryLegacy('SELECT browser FROM user_agents WHERE browser=\'firefox\';'));
+            $stats['Opera'] = count($this->dbConnection->queryLegacy('SELECT browser FROM user_agents WHERE browser=\'opera\';'));
+            $stats['Internet Explorer'] = count($this->dbConnection->queryLegacy('SELECT browser FROM user_agents WHERE browser=\'internet_explorer\';'));
+            $stats['Other'] = count($this->dbConnection->queryLegacy('SELECT browser FROM user_agents WHERE browser=\'other\';'));
+            $this->responseHandler->setData($stats);
         } else {
-            $this->error = "A connection to the database is not established.";
+            $this->responseHandler->setError("A connection to the database is not established.");
         }
     }
 
 
     private function getBulletins()
     {
-        $bulletinData = @$this->fileGetContentsSSL(self::REMOTE_URL . "/json/news.json");
+        $bulletinData = @$this->systemHelper->fileGetContentsSSL(self::REMOTE_URL . "/json/news.json");
         if ($bulletinData !== false) {
-            $this->response = json_decode($bulletinData);
+            $this->responseHandler->setData(json_decode($bulletinData));
             if (json_last_error() === JSON_ERROR_NONE) {
                 return;
             }
         }
         
-        $this->error = "Error connecting to " . self::REMOTE_NAME . ". Please check your connection.";
+        $this->responseHandler->setError("Error connecting to " . self::REMOTE_NAME . ". Please check your connection.");
     }
 }

@@ -1,7 +1,9 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 class Modules extends APIModule
 {
+    protected $endpointRoutes = ['getModuleList'];
     private $modules;
 
     public function __construct($request)
@@ -13,13 +15,13 @@ class Modules extends APIModule
         ];
     }
 
-    public function getModules()
+    protected function getModules()
     {
-        require_once('DatabaseConnection.php');
+        '';
 
         $dir = scandir("../modules");
         if ($dir === false) {
-            $this->error = "Unable to access modules directory";
+            $this->responseHandler->setError("Unable to access modules directory");
             return $this->modules;
         }
 
@@ -59,17 +61,5 @@ class Modules extends APIModule
         }
 
         return $this->modules;
-    }
-
-    public function route()
-    {
-        switch ($this->request->action) {
-            case "getModuleList":
-                $this->getModules();
-                $this->response = ['modules' => $this->modules];
-                break;
-            default:
-                $this->error = "Unknown action: " . $this->request->action;
-        }
     }
 }

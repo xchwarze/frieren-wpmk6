@@ -1,4 +1,6 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
+
+/* Code modified by Frieren Auto Refactor */
 
 abstract class EncryptionFields
 {
@@ -31,6 +33,7 @@ abstract class EncryptionFields
 
 class Recon extends SystemModule
 {
+    protected $endpointRoutes = ['startPineAPDaemon', 'checkPineAPDaemon', 'startNormalScan', 'startLiveScan', 'startReconPP', 'stopScan', 'getScans', 'getScanLocation', 'setScanLocation', 'checkScanStatus', 'loadResults', 'downloadResults', 'removeScan', 'getWSAuthToken'];
     private $dbConnection = null;
     const PATH_WS_SCRIPT = '/pineapple/modules/Recon/api/reconpp.py';
     const CLI_PINEAP = 'pineap /tmp/pineap.conf';
@@ -40,150 +43,89 @@ class Recon extends SystemModule
         parent::__construct($request, __CLASS__);
         $this->dbConnection = false;
 
-        $dbLocation = $this->uciGet("pineap.@config[0].recon_db_path");
+        $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].recon_db_path");
         if (file_exists($dbLocation)) {
-            $this->dbConnection = new DatabaseConnection($dbLocation);
-        }
-    }
-
-    public function route()
-    {
-        switch ($this->request->action) {
-            case 'startPineAPDaemon':
-                $this->startPineAPDaemon();
-                break;
-
-            case 'checkPineAPDaemon':
-                $this->checkPineAPDaemon();
-                break;
-
-            case 'startNormalScan':
-                $this->startNormalScan();
-                break;
-
-            case 'startLiveScan':
-                $this->startLiveScan();
-                break;
-
-            case 'startReconPP':
-                $this->startReconPP();
-                break;
-
-            case 'stopScan':
-                $this->stopScan();
-                break;
-
-            case 'getScans':
-                $this->getScans();
-                break;
-
-            case 'getScanLocation':
-                $this->getScanLocation();
-                break;
-
-            case 'setScanLocation':
-                $this->setScanLocation();
-                break;
-
-            case 'checkScanStatus':
-                $this->checkScanStatus();
-                break;
-
-            case 'loadResults':
-                $this->loadResults($this->request->scanID);
-                break;
-
-            case 'downloadResults':
-                $this->downloadResults();
-                break;
-
-            case 'removeScan':
-                $this->removeScan();
-                break;
-
-            case 'getWSAuthToken':
-                $this->getWSAuthToken();
-                break;
+            $this->dbConnection = new \frieren\orm\SQLite($dbLocation);
         }
     }
 
     private function startPineAPDaemon()
     {
         if ($this->checkPineAPDaemon()) {
-            $this->response = ["success" => true];
+            $this->responseHandler->setData(["success" => true]);
             return;
         }
 
         exec("/etc/init.d/pineapd start", $status_output);
         if ($status_output[0] === "Status: OK") {
-            $this->response = ["success" => true];
+            $this->responseHandler->setData(["success" => true]);
         } else {
-            $this->response = ["message" => implode("\n", $status_output)];
+            $this->responseHandler->setData(["message" => implode("\n", $status_output)]);
         }
     }
 
     private function checkPineAPDaemon()
     {
-        return (bool) $this->checkRunningFull("/usr/sbin/pineapd");
+        return (bool) $this->systemHelper->checkRunning("/usr/sbin/pineapd", true);
     }
 
     private function startNormalScan()
     {
-        $scanDuration = $this->request->scanDuration;
-        $scanType = $this->request->scanType;
+        $scanDuration = $this->request['scanDuration'];
+        $scanType = $this->request['scanType'];
         if ($this->checkPineAPDaemon()) {
             $this->startPineAPDaemon();
             exec(Recon::CLI_PINEAP . " run_scan {$scanDuration} {$scanType}");
             $scanID = $this->getCurrentScanID();
-            $this->response = ["success" => true, "scanID" => $scanID];
+            $this->responseHandler->setData(["success" => true, "scanID" => $scanID]);
         } else {
-            $this->error = "The PineAP Daemon must be running.";
+            $this->responseHandler->setError("The PineAP Daemon must be running.");
         }
     }
 
     private function startReconPP()
     {
-        if ($this->checkRunningFull("python " . Recon::PATH_WS_SCRIPT)) {
-           $this->response = ["success" => true];
+        if ($this->systemHelper->checkRunning("python " . Recon::PATH_WS_SCRIPT, true)) {
+           $this->responseHandler->setData(["success" => true]);
            return;
         }
 
-        $dbPath = $this->uciGet("pineap.@config[0].recon_db_path");
+        $dbPath = $this->systemHelper->uciGet("pineap.@config[0].recon_db_path");
         $scanID = $this->getCurrentScanID();
-        $this->execBackground("python " . Recon::PATH_WS_SCRIPT . " {$dbPath} {$scanID}");
+        $this->systemHelper->execBackground("python " . Recon::PATH_WS_SCRIPT . " {$dbPath} {$scanID}");
 
-        $this->response = ["success" => true];
+        $this->responseHandler->setData(["success" => true]);
     }
 
     private function startLiveScan()
     {
         if ($this->checkPineAPDaemon()) {
-            $scanDuration = $this->request->scanDuration;
-            $scanType = $this->request->scanType;
+            $scanDuration = $this->request['scanDuration'];
+            $scanType = $this->request['scanType'];
             $scanID = 0;
-            $dbLocation = $this->uciGet("pineap.@config[0].recon_db_path");
+            $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].recon_db_path");
 
             // Check if a scan is already in progress
             if (!is_numeric($this->getCurrentScanID())) {
                 exec(Recon::CLI_PINEAP . " run_scan {$scanDuration} {$scanType}");
                 $scanID = $this->getCurrentScanID();
-                $this->execBackground("python " . Recon::PATH_WS_SCRIPT . " {$dbLocation} {$scanID}");
+                $this->systemHelper->execBackground("python " . Recon::PATH_WS_SCRIPT . " {$dbLocation} {$scanID}");
             }
             $this->startReconPP();
-            $this->response = ["success" => true, "scanID" => $scanID];
+            $this->responseHandler->setData(["success" => true, "scanID" => $scanID]);
         } else {
-            $this->error = "The PineAP Daemon must be running.";
+            $this->responseHandler->setError("The PineAP Daemon must be running.");
         }
     }
 
     private function stopScan()
     {
-        $this->execBackground(Recon::CLI_PINEAP . " stop_scan");
-        $this->execBackground("pkill -9 -f " . Recon::PATH_WS_SCRIPT);
+        $this->systemHelper->execBackground(Recon::CLI_PINEAP . " stop_scan");
+        $this->systemHelper->execBackground("pkill -9 -f " . Recon::PATH_WS_SCRIPT);
         if (file_exists('/tmp/reconpp.lock')) {
             unlink('/tmp/reconpp.lock');
         }
-        $this->response = ["success" => true];
+        $this->responseHandler->setData(["success" => true]);
     }
 
     private function getCurrentScanID()
@@ -191,7 +133,7 @@ class Recon extends SystemModule
         exec(Recon::CLI_PINEAP . " get_status", $status_output);
         if ($status_output[0] === "PineAP is not running") {
             $this->stopScan();
-            $this->response = ["completed" => true, "error" => "The PineAP Daemon must be running."];
+            $this->responseHandler->setData(["completed" => true, "error" => "The PineAP Daemon must be running."]);
             return null;
         }
 
@@ -202,7 +144,7 @@ class Recon extends SystemModule
 
     private function wsRunning()
     {
-        return $this->checkRunningFull("python " . Recon::PATH_WS_SCRIPT);
+        return $this->systemHelper->checkRunning("python " . Recon::PATH_WS_SCRIPT, true);
     }
 
     private function checkScanStatus()
@@ -210,26 +152,26 @@ class Recon extends SystemModule
         exec(Recon::CLI_PINEAP . " get_status", $status_output);
         if ($status_output[0] === "PineAP is not running") {
             $this->stopScan();
-            $this->response = ["completed" => true, "error" => "The PineAP Daemon must be running."];
+            $this->responseHandler->setData(["completed" => true, "error" => "The PineAP Daemon must be running."]);
             return;
         }
 
         $status_output = json_decode(implode("\n", $status_output), true);
         if ($status_output['scanRunning'] === false) {
             $this->stopScan();
-            $this->response = ["completed" => true];
+            $this->responseHandler->setData(["completed" => true]);
         } else if ($status_output['scanRunning'] === true) {
-            $this->response = [
+            $this->responseHandler->setData([
                 "completed" => false,
                 "scanID" => $status_output['scanID'],
                 "scanPercent" => $status_output['scanPercent'],
                 "continuous" => $status_output['continuous'],
                 "live" => $this->wsRunning(),
                 "captureRunning" => $status_output['captureRunning'] === true
-            ];
+            ]);
         } else {
             $this->stopScan();
-            $this->response = ["completed" => true, "debug" => $status_output];
+            $this->responseHandler->setData(["completed" => true, "debug" => $status_output]);
         }
     }
 
@@ -239,7 +181,7 @@ class Recon extends SystemModule
         $unassociatedClients = [];
         $outOfRangeClients = [];
 
-        $rows = $this->dbConnection->query("SELECT ssid, bssid, encryption, channel, signal, last_seen, wps FROM aps WHERE scan_id = '%s';", $scanID);
+        $rows = $this->dbConnection->queryLegacy("SELECT ssid, bssid, encryption, channel, signal, last_seen, wps FROM aps WHERE scan_id = '%s';", $scanID);
         foreach ($rows as $row) {
             $accessPoints[ $row['bssid'] ] = [
                 'ssid' => $row['ssid'],
@@ -253,7 +195,7 @@ class Recon extends SystemModule
             ];
         }
 
-        $rows = $this->dbConnection->query("SELECT bssid, mac, last_seen FROM clients WHERE scan_id = '%s';", $scanID);
+        $rows = $this->dbConnection->queryLegacy("SELECT bssid, mac, last_seen FROM clients WHERE scan_id = '%s';", $scanID);
         foreach ($rows as $row) {
             $bssid = $row['bssid'];
             $mac   = $row['mac'];
@@ -279,7 +221,7 @@ class Recon extends SystemModule
             'out_of_range_clients' => $outOfRangeClients,
         ];
 
-        $this->response = ["results" => $returnArray];
+        $this->responseHandler->setData(["results" => $returnArray]);
         return $returnArray;
     }
 
@@ -344,7 +286,7 @@ class Recon extends SystemModule
             ]
         ];
 
-        $aps = $this->dbConnection->query("SELECT scan_id, ssid, bssid, encryption, hidden, channel, signal, wps, last_seen FROM aps WHERE scan_id='%d';", $scanID);
+        $aps = $this->dbConnection->queryLegacy("SELECT scan_id, ssid, bssid, encryption, hidden, channel, signal, wps, last_seen FROM aps WHERE scan_id='%d';", $scanID);
         foreach ($aps as $ap_row) {
             $data[ $scanID ]['aps'][ $ap_row['bssid'] ] = [
                 'ssid' => $ap_row['ssid'],
@@ -357,7 +299,7 @@ class Recon extends SystemModule
                 'clients' => []
             ];
 
-            $clients = $this->dbConnection->query("SELECT scan_id, mac, bssid, last_seen FROM clients WHERE scan_id='%d' AND bssid='%s';", $ap_row['scan_id'], $ap_row['bssid']);
+            $clients = $this->dbConnection->queryLegacy("SELECT scan_id, mac, bssid, last_seen FROM clients WHERE scan_id='%d' AND bssid='%s';", $ap_row['scan_id'], $ap_row['bssid']);
             foreach ($clients as $client_row) {
                 $data[ $scanID ]['aps'][ $ap_row['bssid'] ]['clients'][ $client_row['mac'] ] = [
                     'bssid' => $client_row['bssid'],
@@ -366,7 +308,7 @@ class Recon extends SystemModule
             }
         }
 
-        $clients = $this->dbConnection->query("
+        $clients = $this->dbConnection->queryLegacy("
             SELECT t1.mac, t1.bssid, t1.last_seen FROM clients t1
             LEFT JOIN aps t2 ON
             t2.bssid = t1.bssid WHERE t2.bssid IS NULL AND
@@ -378,7 +320,7 @@ class Recon extends SystemModule
             ];
         }
 
-        $clients = $this->dbConnection->query("SELECT mac FROM clients WHERE bssid='FF:FF:FF:FF:FF:FF' COLLATE NOCASE;");
+        $clients = $this->dbConnection->queryLegacy("SELECT mac FROM clients WHERE bssid='FF:FF:FF:FF:FF:FF' COLLATE NOCASE;");
         foreach ($clients as $client_row) {
             $data[$scanID]['unassociatedClients'][] = $client_row['mac'];
         }
@@ -388,62 +330,62 @@ class Recon extends SystemModule
 
     private function downloadResults()
     {
-        $fileData = $this->getScanObject($this->request->scanID);
+        $fileData = $this->getScanObject($this->request['scanID']);
         $fileName = '/tmp/recon_data.json';
         file_put_contents($fileName, json_encode($fileData, JSON_PRETTY_PRINT));
-        $this->response = ["download" => $this->downloadFile($fileName)];
+        $this->responseHandler->setData(["download" => $this->systemHelper->downloadFile($fileName)]);
     }
 
     private function getScans()
     {
         if ($this->dbConnection) {
-            $scans = $this->dbConnection->query("SELECT * FROM scan_ids ORDER BY date DESC;");
+            $scans = $this->dbConnection->queryLegacy("SELECT * FROM scan_ids ORDER BY date DESC;");
             if (!isset($scans['databaseQueryError'])) {
-                $this->response = ['scans' => $scans];
+                $this->responseHandler->setData(['scans' => $scans]);
                 return;
             }
         }
-        $this->response = ['scans' => []];
+        $this->responseHandler->setData(['scans' => []]);
     }
 
     private function getScanLocation()
     {
-        $scanLocation = dirname($this->uciGet("pineap.@config[0].recon_db_path"));
-        $this->response = ["success" => true, "scanLocation" => "{$scanLocation}/"];
+        $scanLocation = dirname($this->systemHelper->uciGet("pineap.@config[0].recon_db_path"));
+        $this->responseHandler->setData(["success" => true, "scanLocation" => "{$scanLocation}/"]);
     }
 
     private function setScanLocation()
     {
-        $scanLocation = $this->request->scanLocation;
+        $scanLocation = $this->request['scanLocation'];
         if (!empty($scanLocation)) {
             $dbLocation = dirname("{$scanLocation}/fake_file");
-            $this->uciSet("pineap.@config[0].recon_db_path", "{$dbLocation}/recon.db");
+            $this->systemHelper->uciSet("pineap.@config[0].recon_db_path", "{$dbLocation}/recon.db");
             if ($this->checkPineAPDaemon()) {
                 exec("/etc/init.d/pineapd stop");
                 $this->startPineAPDaemon();
             }
-            $this->response = ["success" => true];
+            $this->responseHandler->setData(["success" => true]);
         } else {
-            $this->error = "You cannot specify an empty path.";
+            $this->responseHandler->setError("You cannot specify an empty path.");
         }
     }
 
     private function removeScan()
     {
-        $this->dbConnection->exec("DELETE FROM clients WHERE scan_id='%s';", $this->request->scanID);
-        $this->dbConnection->exec("DELETE FROM aps WHERE scan_id='%s';", $this->request->scanID);
-        $this->dbConnection->exec("DELETE FROM scan_ids WHERE scan_id='%s';", $this->request->scanID);
+        $this->dbConnection->execLegacy("DELETE FROM clients WHERE scan_id='%s';", $this->request['scanID']);
+        $this->dbConnection->execLegacy("DELETE FROM aps WHERE scan_id='%s';", $this->request['scanID']);
+        $this->dbConnection->execLegacy("DELETE FROM scan_ids WHERE scan_id='%s';", $this->request['scanID']);
 
-        $this->response = ["success" => true];
+        $this->responseHandler->setData(["success" => true]);
     }
 
     private function getWSAuthToken()
     {
         @$wsAuthToken = file_get_contents('/tmp/reconpp.token');
         if ($wsAuthToken === false) {
-            $this->response = ["success" => false];
+            $this->responseHandler->setData(["success" => false]);
         } else {
-            $this->response = ["success" => true, "wsAuthToken" => $wsAuthToken];
+            $this->responseHandler->setData(["success" => true, "wsAuthToken" => $wsAuthToken]);
         }
     }
 }

@@ -1,8 +1,9 @@
 <?php namespace helper;
 
+/* Code modified by Frieren Auto Refactor */
 class AccessPoint
 {
-    public function saveAPConfig($apConfig)
+    protected function saveAPConfig($apConfig)
     {
         if (is_array($apConfig)) {
             $apConfig = (object)$apConfig;
@@ -26,7 +27,7 @@ class AccessPoint
         return ["success" => true];
     }
 
-    public function getAPConfig($getChannelInfo = true)
+    protected function getAPConfig($getChannelInfo = true)
     {
         $channels = [];
         if ($getChannelInfo) {

@@ -1,9 +1,12 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
-require_once('DatabaseConnection.php');
+/* Code modified by Frieren Auto Refactor */
+
+'';
 
 class Notifications extends APIModule
 {
+    protected $endpointRoutes = ['listNotifications', 'addNotification', 'clearNotifications'];
     private $notifications;
     private $dbConnection;
     const DATABASE = "/etc/pineapple/pineapple.db";
@@ -11,50 +14,33 @@ class Notifications extends APIModule
     public function __construct($request)
     {
         parent::__construct($request);
-        $this->dbConnection = new DatabaseConnection(self::DATABASE);
+        $this->dbConnection = new \frieren\orm\SQLite(self::DATABASE);
         if (!empty($this->dbConnection->error)) {
-            $this->error = $this->dbConnection->strError();
+            $this->responseHandler->setError($this->dbConnection->strError());
             return;
         }
         $this->notifications = [];
-        $this->dbConnection->exec("CREATE TABLE IF NOT EXISTS notifications (message VARCHAR NOT NULL, time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);");
+        $this->dbConnection->execLegacy("CREATE TABLE IF NOT EXISTS notifications (message VARCHAR NOT NULL, time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP);");
         if (!empty($this->dbConnection->error)) {
-            $this->error = $this->dbConnection->strError();
+            $this->responseHandler->setError($this->dbConnection->strError());
         }
     }
 
-    public function route()
+    protected function addNotification($message)
     {
-        switch ($this->request->action) {
-            case 'listNotifications':
-                $this->response = $this->getNotifications();
-                break;
-            case 'addNotification':
-                $this->response = $this->addNotification($this->request->message);
-                break;
-            case 'clearNotifications':
-                $this->response = $this->clearNotifications();
-                break;
-            default:
-                $this->error = "Unknown action: " . $this->request->action;
-        }
+        return $this->dbConnection->execLegacy("INSERT INTO notifications (message) VALUES('%s');", $message);
     }
 
-    public function addNotification($message)
+    protected function getNotifications()
     {
-        return $this->dbConnection->exec("INSERT INTO notifications (message) VALUES('%s');", $message);
-    }
-
-    public function getNotifications()
-    {
-        $result = $this->dbConnection->query("SELECT message,time from notifications ORDER BY time DESC;");
+        $result = $this->dbConnection->queryLegacy("SELECT message,time from notifications ORDER BY time DESC;");
         $this->notifications = $result;
         return $this->notifications;
     }
 
-    public function clearNotifications()
+    protected function clearNotifications()
     {
-        $result = $this->dbConnection->exec('DELETE FROM notifications;');
+        $result = $this->dbConnection->execLegacy('DELETE FROM notifications;');
         unset($this->notifications);
         return $result;
     }

@@ -1,90 +1,65 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 class Notes extends SystemModule
 {
 
+    protected $endpointRoutes = ['setName', 'setNote', 'getNotes', 'getNote', 'deleteNote', 'downloadNotes', 'getKeys'];
     private $dbConnection;
     const DATABASE = "/etc/pineapple/pineapple.db";
 
     public function __construct($request)
     {
         parent::__construct($request, __CLASS__);
-        $this->dbConnection = new DatabaseConnection(self::DATABASE);
+        $this->dbConnection = new \frieren\orm\SQLite(self::DATABASE);
         if (!empty($this->dbConnection->error)) {
-            $this->error = $this->dbConnection->strError();
+            $this->responseHandler->setError($this->dbConnection->strError());
             return;
         }
-        $this->dbConnection->exec("CREATE TABLE IF NOT EXISTS notes (type INT, key TEXT UNIQUE NOT NULL, name TEXT, note TEXT);");
+        $this->dbConnection->execLegacy("CREATE TABLE IF NOT EXISTS notes (type INT, key TEXT UNIQUE NOT NULL, name TEXT, note TEXT);");
         if (!empty($this->dbConnection->error)) {
-            $this->error = $this->dbConnection->strError();
+            $this->responseHandler->setError($this->dbConnection->strError());
         }
     }
 
-    public function route()
+    protected function setName($type, $key, $name)
     {
-        switch ($this->request->action) {
-            case 'setName':
-                $this->response = $this->setName($this->request->type, $this->request->key, $this->request->name);
-                break;
-            case 'setNote':
-                $this->response = $this->setNote($this->request->type, $this->request->key, $this->request->name, $this->request->note);
-                break;
-            case 'getNotes':
-                $this->response = $this->getNotes();
-                break;
-            case 'getNote':
-                $this->response = $this->getNote($this->request->key);
-                break;
-            case 'deleteNote':
-                $this->response = $this->deleteNote($this->request->key);
-                break;
-            case 'downloadNotes':
-                $this->response = $this->downloadNotes();
-                break;
-            case 'getKeys':
-                $this->response = $this->getKeys();
-                break;
-        }
+        return $this->dbConnection->execLegacy("INSERT OR REPLACE INTO notes (type, key, name) VALUES('%d', '%s', '%s');", $type, $key, $name);
     }
 
-    public function setName($type, $key, $name)
-    {
-        return $this->dbConnection->exec("INSERT OR REPLACE INTO notes (type, key, name) VALUES('%d', '%s', '%s');", $type, $key, $name);
-    }
-
-    public function setNote($type, $key, $name, $note)
+    protected function setNote($type, $key, $name, $note)
     {
         if (empty($name) && empty($note)) {
             return $this->deleteNote($key);
         } else {
-            return $this->dbConnection->exec("INSERT OR REPLACE INTO notes (type, key, name, note) VALUES ('%d', '%s', '%s', '%s');", $type, $key, $name, $note);
+            return $this->dbConnection->execLegacy("INSERT OR REPLACE INTO notes (type, key, name, note) VALUES ('%d', '%s', '%s', '%s');", $type, $key, $name, $note);
         }
     }
 
-    public function getNotes()
+    protected function getNotes()
     {
-        $macs = $this->dbConnection->query("SELECT type, key, name, note FROM notes WHERE type=0;");
-        $ssids = $this->dbConnection->query("SELECT type, key, name, note FROM notes WHERE type=1;");
+        $macs = $this->dbConnection->queryLegacy("SELECT type, key, name, note FROM notes WHERE type=0;");
+        $ssids = $this->dbConnection->queryLegacy("SELECT type, key, name, note FROM notes WHERE type=1;");
         return array("macs" => $macs, "ssids" => $ssids);
     }
 
-    public function getNote($key)
+    protected function getNote($key)
     {
-        return array("note" => $this->dbConnection->query("SELECT type, key, name, note FROM notes WHERE key='%s';", $key));
+        return array("note" => $this->dbConnection->queryLegacy("SELECT type, key, name, note FROM notes WHERE key='%s';", $key));
     }
 
-    public function deleteNote($key)
+    protected function deleteNote($key)
     {
         if (!isset($key)) {
             return array("success" => false);
         }
-        $this->dbConnection->exec("DELETE FROM notes WHERE key='%s';", $key);
+        $this->dbConnection->execLegacy("DELETE FROM notes WHERE key='%s';", $key);
         return array("success" => true);
     }
 
-    public function downloadNotes()
+    protected function downloadNotes()
     {
-        $noteData = $this->dbConnection->query('SELECT * FROM notes;');
+        $noteData = $this->dbConnection->queryLegacy('SELECT * FROM notes;');
         foreach ($noteData as $idx => $note) {
             if ($note['type'] == 0) {
                 $note['type'] = 'MAC';
@@ -95,13 +70,13 @@ class Notes extends SystemModule
         }
         $fileName = '/tmp/notes.json';
         file_put_contents($fileName, json_encode($noteData, JSON_PRETTY_PRINT));
-        return array("download" => $this->downloadFile($fileName));
+        return array("download" => $this->systemHelper->downloadFile($fileName));
     }
 
-    public function getKeys()
+    protected function getKeys()
     {
         $keys = array();
-        $res = $this->dbConnection->query("SELECT key FROM notes;");
+        $res = $this->dbConnection->queryLegacy("SELECT key FROM notes;");
         foreach ($res as $idx => $key) {
             $keys[] = $key['key'];
         }

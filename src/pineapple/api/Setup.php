@@ -1,38 +1,17 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 class Setup extends APIModule
 {
-    public function route()
-    {
-        @session_write_close();
-        if (file_exists('/etc/pineapple/setupRequired')) {
-            switch ($this->request->action) {
-                case 'checkButtonStatus':
-                    $this->checkButtonStatus();
-                    break;
-                case 'getChanges':
-                    $this->getChanges();
-                    break;
-                case 'getDeviceData':
-                    $this->getDeviceData();
-                    break;
-                case 'populateFields':
-                    $this->populateFields();
-                    break;
-                case 'performSetup':
-                    $this->performSetup();
-                    break;
-            }
-        }
-    }
+    protected $endpointRoutes = [];
 
     private function changePassword()
     {
-        if ($this->request->rootPassword !== $this->request->confirmRootPassword) {
-            $this->error = 'The root passwords do not match.';
+        if ($this->request['rootPassword'] !== $this->request['confirmRootPassword']) {
+            $this->responseHandler->setError('The root passwords do not match.');
             return false;
         }
-        $new = $this->request->rootPassword;
+        $new = $this->request['rootPassword'];
         $shadow_file = file_get_contents('/etc/shadow');
         $root_array = explode(":", explode("\n", $shadow_file)[0]);
         $salt = '$1$' . explode('$', $root_array[1])[2] . '$';
@@ -50,7 +29,7 @@ class Setup extends APIModule
     {
         $buttonPressed = file_exists('/tmp/button_setup');
         $bootStatus = !file_exists('/etc/pineapple/init');
-        $this->response = array('buttonPressed' => $buttonPressed, 'booted' => $bootStatus);
+        $this->responseHandler->setData(array('buttonPressed' => $buttonPressed, 'booted' => $bootStatus));
 
         return $buttonPressed;
     }
@@ -60,9 +39,9 @@ class Setup extends APIModule
         if (file_exists("/pineapple/changes")) {
             $changes = file_get_contents("/pineapple/changes");
             $version = trim(file_get_contents('/pineapple/pineapple_version'));
-            $this->response = array('changes' => $changes, 'fwversion' => $version);
+            $this->responseHandler->setData(array('changes' => $changes, 'fwversion' => $version));
         } else {
-            $this->response = array('changes' => NULL);
+            $this->responseHandler->setData(array('changes' => NULL));
         }
         return true;
     }
@@ -75,43 +54,43 @@ class Setup extends APIModule
             exec('/bin/rm -rf /pineapple/modules/Setup /pineapple/api/Setup.php /etc/pineapple/setupRequired /etc/pineapple/init');
         }
 
-        $this->response = array(
+        $this->responseHandler->setData(array(
             'complete' => $complete,
             'config'   => \helper\getDeviceConfig(),
-        );
+        ));
     }
 
     private function populateFields()
     {
         exec('cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" \'{print $5""$6 }\'| tr a-z A-Z', $macOctets);
-        $this->response = array('openSSID' => "Pineapple_{$macOctets[0]}", 'hideOpenAP' => true);
+        $this->responseHandler->setData(array('openSSID' => "Pineapple_{$macOctets[0]}", 'hideOpenAP' => true));
         return true;
     }
 
     private function setupWifi()
     {
-        $managementSSID = $this->request->managementSSID;
-        $managementPass = $this->request->managementPass;
-        $hideManagementAP = $this->request->hideManagementAP;
-        $disableManagementAP = $this->request->disableManagementAP;
-        $openSSID = $this->request->openSSID;
-        $hideOpenAP = $this->request->hideOpenAP;
-        $countryCode = $this->request->countryCode;
+        $managementSSID = $this->request['managementSSID'];
+        $managementPass = $this->request['managementPass'];
+        $hideManagementAP = $this->request['hideManagementAP'];
+        $disableManagementAP = $this->request['disableManagementAP'];
+        $openSSID = $this->request['openSSID'];
+        $hideOpenAP = $this->request['hideOpenAP'];
+        $countryCode = $this->request['countryCode'];
 
         if (strlen($managementSSID) < 1) {
-            $this->error = 'The Management SSID cannot be empty.';
+            $this->responseHandler->setError('The Management SSID cannot be empty.');
             return false;
         }
         if (strlen($openSSID) < 1) {
-            $this->error = 'The Open AP SSID cannot be empty.';
+            $this->responseHandler->setError('The Open AP SSID cannot be empty.');
             return false;
         }
-        if ($managementPass !== $this->request->confirmManagementPass) {
-            $this->error = 'The WPA2 Passwords do not match.';
+        if ($managementPass !== $this->request['confirmManagementPass']) {
+            $this->responseHandler->setError('The WPA2 Passwords do not match.');
             return false;
         }
         if (strlen($managementPass) < 8) {
-            $this->error = 'The WPA2 passwords must be at least 8 characters.';
+            $this->responseHandler->setError('The WPA2 passwords must be at least 8 characters.');
             return false;
         }
 
@@ -151,14 +130,14 @@ class Setup extends APIModule
 
     private function setupPineAP()
     {
-        if ($this->request->macFilterMode === "Allow") {
+        if ($this->request['macFilterMode'] === "Allow") {
             exec('hostapd_cli -i wlan0 karma_mac_white');
             exec('uci set pineap.@config[0].mac_filter=white');
         } else {
             exec('hostapd_cli -i wlan0 karma_mac_black');
             exec('uci set pineap.@config[0].mac_filter=black');
         }
-        if ($this->request->ssidFilterMode === "Allow") {
+        if ($this->request['ssidFilterMode'] === "Allow") {
             exec('hostapd_cli -i wlan0 karma_white');
             exec('uci set pineap.@config[0].ssid_filter=white');
         } else {
@@ -175,12 +154,12 @@ class Setup extends APIModule
 
     private function setupFirewall()
     {
-        if ($this->request->WANSSHAccess) {
+        if ($this->request['WANSSHAccess']) {
             exec("uci set firewall.allowssh.enabled=1");
             exec("uci commit firewall");
         }
 
-        if ($this->request->WANUIAccess) {
+        if ($this->request['WANUIAccess']) {
             exec("uci set firewall.allowui.enabled=1");
             exec("uci commit firewall");
         }
@@ -193,7 +172,7 @@ class Setup extends APIModule
         $this->restartWifi();
         @unlink('/etc/pineapple/setupRequired');
         @unlink('/pineapple/api/Setup.php');
-        $timeZone = $this->request->timeZone;
+        $timeZone = $this->request['timeZone'];
         exec("echo {$timeZone} > /etc/TZ");
         exec("uci set system.@system[0].timezone={$timeZone}");
         exec("uci commit");
@@ -203,25 +182,25 @@ class Setup extends APIModule
         exec('/bin/touch /etc/pineapple/setup_complete');
     }
 
-    public function performSetup()
+    protected function performSetup()
     {
         if (!$this->checkButtonStatus()) {
-            $this->error = "Not verified.";
+            $this->responseHandler->setError("Not verified.");
             return false;
         }
 
-        if ($this->request->eula !== true || $this->request->license !== true) {
-            $this->error = "Please accept the EULA and Software License.";
+        if ($this->request['eula'] !== true || $this->request['license'] !== true) {
+            $this->responseHandler->setError("Please accept the EULA and Software License.");
             return false;
         }
 
-        if ($this->request->macFilterMode !== "Allow" && $this->request->macFilterMode !== "Deny") {
-            $this->error = "Please choose a setting for the Client Filter.";
+        if ($this->request['macFilterMode'] !== "Allow" && $this->request['macFilterMode'] !== "Deny") {
+            $this->responseHandler->setError("Please choose a setting for the Client Filter.");
             return false;
         }
 
-        if ($this->request->ssidFilterMode !== "Allow" && $this->request->ssidFilterMode !== "Deny") {
-            $this->error = "Please choose a setting for the SSID Filter.";
+        if ($this->request['ssidFilterMode'] !== "Allow" && $this->request['ssidFilterMode'] !== "Deny") {
+            $this->responseHandler->setError("Please choose a setting for the SSID Filter.");
             return false;
         }
 

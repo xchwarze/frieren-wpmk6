@@ -1,47 +1,13 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 class Logging extends SystemModule
 {
-    public function route()
-    {
-        switch ($this->request->action) {
-            case 'getSyslog':
-                $this->getSyslog();
-                break;
-
-            case 'getDmesg':
-                $this->getDmesg();
-                break;
-
-            case 'getReportingLog':
-                $this->getReportingLog();
-                break;
-
-            case 'getPineapLog':
-                $this->getPineapLog();
-                break;
-
-            case 'clearPineapLog':
-                $this->clearPineapLog();
-                break;
-
-            case 'getPineapLogLocation':
-                $this->getPineapLogLocation();
-                break;
-
-            case 'setPineapLogLocation':
-                $this->setPineapLogLocation();
-                break;
-
-            case 'downloadPineapLog':
-                $this->downloadPineapLog();
-                break;
-        }
-    }
+    protected $endpointRoutes = ['getSyslog', 'getDmesg', 'getReportingLog', 'getPineapLog', 'clearPineapLog', 'getPineapLogLocation', 'setPineapLogLocation', 'downloadPineapLog'];
 
     private function downloadPineapLog()
     {
-        $dbLocation = $this->uciGet("pineap.@config[0].hostapd_db_path");
+        $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].hostapd_db_path");
         $db = new DatabaseConnection($dbLocation);
         $rows = $db->query("SELECT * FROM log ORDER BY updated_at ASC;");
         $logFile = fopen("/tmp/pineap.log", 'w');
@@ -65,19 +31,19 @@ class Logging extends SystemModule
             fwrite($logFile, "${row['created_at']},\t${type},\t${row['mac']},\t${row['ssid']},\t${count}\n");
         }
         fclose($logFile);
-        $this->response = array("download" => $this->downloadFile('/tmp/pineap.log'));
+        $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile('/tmp/pineap.log')));
     }
 
     private function getSyslog()
     {
         exec("logread", $syslogOutput);
-        $this->response = implode("\n", $syslogOutput);
+        $this->responseHandler->setData(implode("\n", $syslogOutput));
     }
 
     private function getDmesg()
     {
         exec("dmesg", $dmesgOutput);
-        $this->response = implode("\n", $dmesgOutput);
+        $this->responseHandler->setData(implode("\n", $dmesgOutput));
     }
 
     private function getReportingLog()
@@ -94,30 +60,30 @@ class Logging extends SystemModule
 
     private function getPineapLog()
     {
-        $dbLocation = $this->uciGet("pineap.@config[0].hostapd_db_path");
+        $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].hostapd_db_path");
         $db = new DatabaseConnection($dbLocation);
         $rows = $db->query("SELECT * FROM log ORDER BY updated_at DESC;");
-        $this->response = array("pineap_log" => $rows);
+        $this->responseHandler->setData(array("pineap_log" => $rows));
     }
 
     private function clearPineapLog()
     {
-        $dbLocation = $this->uciGet("pineap.@config[0].hostapd_db_path");
+        $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].hostapd_db_path");
         $db = new DatabaseConnection($dbLocation);
         $db->exec("DELETE FROM log;");
-        $this->response = array('success' => true);
+        $this->responseHandler->setData(array('success' => true));
     }
 
     private function getPineapLogLocation()
     {
-        $dbBasePath = dirname($this->uciGet("pineap.@config[0].hostapd_db_path"));
-        $this->response = array('location' => $dbBasePath . "/");
+        $dbBasePath = dirname($this->systemHelper->uciGet("pineap.@config[0].hostapd_db_path"));
+        $this->responseHandler->setData(array('location' => $dbBasePath . "/"));
     }
 
     private function setPineapLogLocation()
     {
-        $dbLocation = dirname($this->request->location . '/fake_file');
-        $this->uciSet("pineap.@config[0].hostapd_db_path", $dbLocation . '/log.db');
-        $this->response = array('success' => true);
+        $dbLocation = dirname($this->request['location'] . '/fake_file');
+        $this->systemHelper->uciSet("pineap.@config[0].hostapd_db_path", $dbLocation . '/log.db');
+        $this->responseHandler->setData(array('success' => true));
     }
 }

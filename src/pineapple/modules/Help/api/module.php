@@ -1,38 +1,24 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 class Help extends SystemModule
 {
-    public function route()
-    {
-        switch ($this->request->action) {
-            case 'generateDebugFile':
-                $this->generateDebugFile();
-                break;
-
-            case 'downloadDebugFile':
-                $this->downloadDebugFile();
-                break;
-
-            case 'getConsoleOutput':
-                $this->getConsoleOutput();
-                break;
-        }
-    }
+    protected $endpointRoutes = ['generateDebugFile', 'downloadDebugFile', 'getConsoleOutput'];
 
     private function generateDebugFile()
     {
         @unlink('/tmp/debug.log');
-        $this->execBackground("(/pineapple/modules/Help/files/debug 2>&1) > /tmp/debug_generation_output");
-        $this->response = array("success" => true);
+        $this->systemHelper->execBackground("(/pineapple/modules/Help/files/debug 2>&1) > /tmp/debug_generation_output");
+        $this->responseHandler->setData(array("success" => true));
     }
 
     private function downloadDebugFile()
     {
         if (!file_exists('/tmp/debug.log')) {
-            $this->error = "The debug file is missing.";
+            $this->responseHandler->setError("The debug file is missing.");
             return;
         }
-        $this->response = array("success" => true, "downloadToken" => $this->downloadFile("/tmp/debug.log"));
+        $this->responseHandler->setData(array("success" => true, "downloadToken" => $this->systemHelper->downloadFile("/tmp/debug.log")));
     }
 
     private function getConsoleOutput()
@@ -41,6 +27,6 @@ class Help extends SystemModule
         if (file_exists("/tmp/debug_generation_output")) {
             $output = file_get_contents("/tmp/debug_generation_output");
         }
-        $this->response = array("output" => $output);
+        $this->responseHandler->setData(array("output" => $output));
     }
 }

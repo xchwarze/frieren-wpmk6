@@ -1,5 +1,6 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 class DatabaseConnection
 {
     private $databaseFile;
@@ -8,17 +9,17 @@ class DatabaseConnection
 
     public function __construct($databaseFile)
     {
-        $this->error = [];
+        $this->responseHandler->setError([]);
         $this->databaseFile = $databaseFile;
         try {
-            $this->dbConnection = new \SQLite3($this->databaseFile);
+            $this->dbConnection = new \frieren\orm\SQLite($this->databaseFile);
             $this->dbConnection->busyTimeout(20000);
         } catch (\Exception $e) {
             $this->error["databaseConnectionError"] = $e->getMessage();
         }
     }
 
-    public function strError()
+    protected function strError()
     {
         foreach ($this->error as $errorType => $errorMessage) {
             switch ($errorType) {
@@ -35,17 +36,17 @@ class DatabaseConnection
         return true;
     }
 
-    public function getDatabaseFile()
+    protected function getDatabaseFile()
     {
         return $this->databaseFile;
     }
 
-    public function getDbConnection()
+    protected function getDbConnection()
     {
         return $this->dbConnection;
     }
 
-    public static function formatQuery(...$query)
+    protected static function formatQuery(...$query)
     {
         $query = $query[0];
         $sqlQuery = $query[0];
@@ -62,10 +63,10 @@ class DatabaseConnection
         return vsprintf($sqlQuery, $sqlParameters);
     }
 
-    public function query(...$query)
+    protected function query(...$query)
     {
         $safeQuery = DatabaseConnection::formatQuery($query);
-        $result = $this->dbConnection->query($safeQuery);
+        $result = $this->dbConnection->queryLegacy($safeQuery);
         if (!$result) {
             $this->error['databaseQueryError'] = $this->dbConnection->lastErrorMsg();
             return $this->error;
@@ -77,11 +78,11 @@ class DatabaseConnection
         return $resultArray;
     }
 
-    public function exec(...$query)
+    protected function exec(...$query)
     {
         $safeQuery = DatabaseConnection::formatQuery($query);
         try {
-            $result = $this->dbConnection->exec($safeQuery);
+            $result = $this->dbConnection->execLegacy($safeQuery);
         } catch (\Exception $e) {
             $this->error['databaseExecutionError'] = $e;
             return $this->error;

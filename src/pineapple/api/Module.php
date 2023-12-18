@@ -1,5 +1,6 @@
-<?php namespace pineapple;
+<?php namespace frieren\core;
 
+/* Code modified by Frieren Auto Refactor */
 abstract class Module
 {
     protected $request;
@@ -10,16 +11,14 @@ abstract class Module
     const REMOTE_NAME = "GitHub.com";
     const REMOTE_URL = "https://raw.githubusercontent.com/xchwarze/wifi-pineapple-community/main";
 
-    abstract public function route();
-
     public function __construct($request, $moduleClass)
     {
         $this->request = $request;
         $this->moduleClass = $moduleClass;
-        $this->error = '';
+        $this->responseHandler->setError('');
     }
 
-    public function getResponse()
+    protected function getResponse()
     {
         if (empty($this->error) && !empty($this->response)) {
             return $this->response;
@@ -34,7 +33,7 @@ abstract class Module
         }
     }
 
-    public function execBackground($command)
+    protected function execBackground($command)
     {
         return \helper\execBackground($command);
     }
@@ -61,17 +60,17 @@ abstract class Module
         return \helper\checkRunningFull($processString);
     }
 
-    public function uciGet($uciString)
+    protected function uciGet($uciString)
     {
         return \helper\uciGet($uciString);
     }
 
-    public function uciSet($settingString, $value)
+    protected function uciSet($settingString, $value)
     {
        \helper\uciSet($settingString, $value);
     }
 
-    public function uciAddList($settingString, $value)
+    protected function uciAddList($settingString, $value)
     {
        \helper\uciAddList($settingString, $value);
     }
@@ -108,18 +107,18 @@ abstract class Module
 
     protected function installDependency($dependencyName, $installToSD = false)
     {
-        if ($installToSD && !$this->isSDAvailable()) {
+        if ($installToSD && !$this->systemHelper->isSDAvailable()) {
             return false;
         }
 
         $destination = $installToSD ? '--dest sd' : '';
         $dependencyName = escapeshellarg($dependencyName);
-        if (!$this->checkDependency($dependencyName)) {
+        if (!$this->systemHelper->checkDependency($dependencyName)) {
             exec("opkg update");
             exec("opkg install {$dependencyName} {$destination}");
         }
 
-        return $this->checkDependency($dependencyName);
+        return $this->systemHelper->checkDependency($dependencyName);
     }
 
     protected function checkDependency($dependencyName)
