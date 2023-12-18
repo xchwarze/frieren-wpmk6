@@ -1,0 +1,10 @@
+{
+    "require": {
+        "rector/rector": "^0.18.12"
+    },
+    "autoload": {
+        "psr-4": {
+            "Utils\\Rector\\": "rules"
+        }
+    }
+}
