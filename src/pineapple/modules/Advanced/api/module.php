@@ -3,8 +3,8 @@
 /* Code modified by Frieren Auto Refactor */
 class Advanced extends Controller
 {
-    protected $endpointRoutes = ['getResources', 'dropCaches', 'getUSB', 'getFstab', 'saveFstab', 'getCSS', 'saveCSS', 'formatSDCard', 'formatSDCardStatus', 'checkForUpgrade', 'downloadUpgrade', 'getDownloadStatus', 'performUpgrade', 'getCurrentVersion', 'checkApiToken', 'addApiToken', 'getApiTokens', 'revokeApiToken'];
-    private $dbConnection;
+    public $endpointRoutes = ['getResources', 'dropCaches', 'getUSB', 'getFstab', 'saveFstab', 'getCSS', 'saveCSS', 'formatSDCard', 'formatSDCardStatus', 'checkForUpgrade', 'downloadUpgrade', 'getDownloadStatus', 'performUpgrade', 'getCurrentVersion', 'checkApiToken', 'addApiToken', 'getApiTokens', 'revokeApiToken'];
+    public $dbConnection;
 
     const DATABASE = "/etc/pineapple/pineapple.db";
     const UP_PATH = "/tmp/upgrade.bin";
@@ -13,12 +13,13 @@ class Advanced extends Controller
 
     public function __construct($request)
     {
-        parent::__construct($request, __CLASS__);
         $this->dbConnection = new \frieren\orm\SQLite(self::DATABASE);
         $this->dbConnection->execLegacy("CREATE TABLE IF NOT EXISTS api_tokens (token VARCHAR NOT NULL, name VARCHAR NOT NULL);");
+
+        parent::__construct($request);
     }
 
-    private function getResources()
+    public function getResources()
     {
         exec('df -h', $freeDisk);
         $freeDisk = implode("\n", $freeDisk);
@@ -29,26 +30,26 @@ class Advanced extends Controller
         $this->responseHandler->setData(["freeDisk" => $freeDisk, "freeMem" => $freeMem]);
     }
 
-    private function dropCaches()
+    public function dropCaches()
     {
         $this->systemHelper->execBackground('echo 3 > /proc/sys/vm/drop_caches');
         $this->responseHandler->setData(['success' => true]);
     }
 
-    private function getUSB()
+    public function getUSB()
     {
         exec('lsusb', $lsusb);
         $lsusb = implode("\n", $lsusb);
         $this->responseHandler->setData(['lsusb' => $lsusb]);
     }
 
-    private function getFstab()
+    public function getFstab()
     {
         $fstab = file_get_contents('/etc/config/fstab');
         $this->responseHandler->setData(['fstab' => $fstab]);
     }
 
-    private function saveFstab()
+    public function saveFstab()
     {
         if (isset($this->request['fstab'])) {
             file_put_contents('/etc/config/fstab', $this->request['fstab']);
@@ -56,13 +57,13 @@ class Advanced extends Controller
         }
     }
 
-    private function getCSS()
+    public function getCSS()
     {
         $css = file_get_contents('/pineapple/css/main.css');
         $this->responseHandler->setData(['css' => $css]);
     }
 
-    private function saveCSS()
+    public function saveCSS()
     {
         if (isset($this->request['css'])) {
             file_put_contents('/pineapple/css/main.css', $this->request['css']);
@@ -70,9 +71,10 @@ class Advanced extends Controller
         }
     }
 
-    private function checkForUpgrade()
+    public function checkForUpgrade()
     {
-        $upgradeData = @$this->systemHelper->fileGetContentsSSL(self::REMOTE_URL . "/json/upgrades.json");
+        $url = sprintf(\DeviceConfig::UPGRADE_PATH, \DeviceConfig::SERVER_URL);
+        $upgradeData = @$this->systemHelper->fileGetContentsSSL($url);
         if ($upgradeData !== false) {
             $upgradeData = json_decode($upgradeData, true);
             if (json_last_error() === JSON_ERROR_NONE) {
@@ -93,11 +95,11 @@ class Advanced extends Controller
                 }
             }
         } else {
-            $this->responseHandler->setError("Error connecting to " . self::REMOTE_NAME . ". Please check your connection.");
+            $this->responseHandler->setError("Error connecting to  remote host. Please check your connection.");
         }
     }
 
-    private function downloadUpgrade()
+    public function downloadUpgrade()
     {
         if (file_exists(self::UP_PATCH)) {
             exec("cd / && patch < " . self::UP_PATCH);
@@ -110,7 +112,7 @@ class Advanced extends Controller
         $this->responseHandler->setData(["success" => true]);
     }
 
-    private function getDownloadStatus()
+    public function getDownloadStatus()
     {
         if (file_exists(self::UP_FLAG)) {
             $fileHash = hash_file('sha256', self::UP_PATH);
@@ -137,7 +139,7 @@ class Advanced extends Controller
         }
     }
 
-    private function performUpgrade()
+    public function performUpgrade()
     {
         if (file_exists(self::UP_PATH)) {
             $params = "-n";
@@ -152,34 +154,37 @@ class Advanced extends Controller
         }
     }
 
-    private function compareFirmwareVersion($version)
+    public function compareFirmwareVersion($version)
     {
         return version_compare($this->systemHelper->getFirmwareVersion(), $version, '<');
     }
 
-    private function getCurrentVersion()
+    public function getCurrentVersion()
     {
         $this->responseHandler->setData(["firmwareVersion" => $this->systemHelper->getFirmwareVersion()]);
     }
 
-    private function formatSDCard()
+    public function formatSDCard()
     {
-        $this->systemHelper->execBackground("/pineapple/modules/Advanced/formatSD/format_sd");
+        if ($this->systemHelper->sdReaderPresent()) {
+            $this->systemHelper->execBackground("/pineapple/modules/Advanced/formatSD/format_sd");
+        }
+
         $this->responseHandler->setData(['success' => true]);
     }
 
-    private function formatSDCardStatus()
+    public function formatSDCardStatus()
     {
         $this->responseHandler->setData(['success' => (!file_exists('/tmp/sd_format.progress'))]);
     }
 
-    private function getApiTokens()
+    public function getApiTokens()
     {
         $tokens = $this->dbConnection->queryLegacy("SELECT ROWID, token, name FROM api_tokens;");
         $this->responseHandler->setData(["tokens" => $tokens]);
     }
 
-    private function checkApiToken()
+    public function checkApiToken()
     {
         if (isset($this->request['token'])) {
             $token = $this->request['token'];
@@ -193,7 +198,7 @@ class Advanced extends Controller
         $this->responseHandler->setData(["valid" => false]);
     }
 
-    private function addApiToken()
+    public function addApiToken()
     {
         if (isset($this->request['name'])) {
             $token = hash('sha512', random_bytes(32));
@@ -205,7 +210,7 @@ class Advanced extends Controller
         }
     }
 
-    private function revokeApiToken()
+    public function revokeApiToken()
     {
         if (isset($this->request['id'])) {
             $this->dbConnection->execLegacy("DELETE FROM api_tokens WHERE ROWID='%s'", $this->request['id']);

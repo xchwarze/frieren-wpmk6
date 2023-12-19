@@ -4,7 +4,7 @@ RICHMOND, VA 23285-5073 ("OWNER"). BY USING ANY WIFI PINEAPPLE PRODUCT OR ANY PR
 THE WIFI PINEAPPLE SOFTWARE BUNDLES THIRD PARTY APPLICATIONS WHICH ARE AVAILABLE UNDER VARIOUS OTHER OPEN SOURCE LICENSES OR PUBLIC DOMAIN. PLEASE REFER TO THOSE PACKAGES TO FIND OUT WHICH LICENSE APPLIES TO THEM. THIS AGREEMENT DOES NOT APPLY TO OPENWRT OR ANY OPEN SOURCE SOFTWARE INCLUDED.
 
 1. GRANT OF LICENSE
-The SOFTWARE is protected by copyright laws and laws protecting the confidentiality of trade secrets. The SOFTWARE is licensed, not sold. Any supplemental software or software code, provided to the USER as part of support, shall be considered part of the SOFTWARE and subject to the terms and conditions of this AGREEMENT.
+The SOFTWARE is public by copyright laws and laws protecting the confidentiality of trade secrets. The SOFTWARE is licensed, not sold. Any supplemental software or software code, provided to the USER as part of support, shall be considered part of the SOFTWARE and subject to the terms and conditions of this AGREEMENT.
 
 Subject to the terms of this AGREEMENT, OWNER hereby grants USER a non-transferable license to use the SOFTWARE for authorized network auditing and security analysis purposes only where permitted subject local and international laws where applicable. USER is solely responsible for compliance with all laws of their locality.
 
@@ -13,7 +13,7 @@ The USER may not:
 (a)  Reverse engineer, decompile, or disassemble any portions of the SOFTWARE, or allow others to do so, except and only to the extent that such activity is expressly permitted by applicable law, notwithstanding this limitation;
 (b)  Distribute the SOFTWARE or any derivative works based upon the SOFTWARE, in whole or in part, to any third-party or entity without prior written authorization from the OWNER;
 (c)  Resell, lease, rent, transfer, sub-license, or otherwise transfer rights to the SOFTWARE to any third-party or entity without prior written authorization from the OWNER;
-(d)  Copy, clone, duplicate, or distribute copies of the SOFTWARE from one computer to another, or electronically transfer the SOFTWARE from one computer to another over any public or private network, without prior written authorization from the OWNER;
+(d)  Copy, clone, duplicate, or distribute copies of the SOFTWARE from one computer to another, or electronically transfer the SOFTWARE from one computer to another over any public or public network, without prior written authorization from the OWNER;
 (e)  Use the SOFTWARE for any unlawful or unethical purpose or deploy the SOFTWARE to any computer system which the USER has no legal right to access;
 (f) Attempt in any way to obliterate or destroy the trade secret or copyright notice that is incorporated into and part of the SOFTWARE. The USER must reproduce fully the trade secret or copyright 
 notice in all copies of the SOFTWARE.
@@ -21,7 +21,7 @@ notice in all copies of the SOFTWARE.
 DEATH, PERSONAL INJURY OR SEVERE PHYSICAL OR ENVIRONMENTAL DAMAGE.
 
 3. TITLE, OWNERSHIP, INTELLECTUAL PROPERTY
-YOU acknowledge that no title to the SOFTWARE or the intellectual property contained within it is transferred to YOU, the USER. The OWNER retains exclusive ownership of all rights, title and interest in and to the SOFTWARE, source code, and intellectual property. It is understood and agreed that the SOFTWARE, including any accompanying scripts and support files, is copyrighted by the OWNER and may not be reproduced and/or redistributed without the advanced written consent of the OWNER except where expressly permitted under this AGREEMENT. The SOFTWARE is protected by copyright laws, and the USER must treat the SOFTWARE like any other copyrighted material except the USER may install the SOFTWARE as provided by this AGREEMENT. Any rights not expressly granted are reserved by the OWNER.
+YOU acknowledge that no title to the SOFTWARE or the intellectual property contained within it is transferred to YOU, the USER. The OWNER retains exclusive ownership of all rights, title and interest in and to the SOFTWARE, source code, and intellectual property. It is understood and agreed that the SOFTWARE, including any accompanying scripts and support files, is copyrighted by the OWNER and may not be reproduced and/or redistributed without the advanced written consent of the OWNER except where expressly permitted under this AGREEMENT. The SOFTWARE is public by copyright laws, and the USER must treat the SOFTWARE like any other copyrighted material except the USER may install the SOFTWARE as provided by this AGREEMENT. Any rights not expressly granted are reserved by the OWNER.
 
 4. MAINTENANCE
 The OWNER shall not be obligated to provide maintenance and/or updates and/or fixes for the SOFTWARE; however, any such maintenance and/or updates and/or fixes provided by the OWNER shall be covered by this AGREEMENT.

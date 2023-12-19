@@ -3,21 +3,17 @@
 /* Code modified by Frieren Auto Refactor */
 class Clients extends Controller
 {
-    protected $endpointRoutes = ['getClientData', 'kickClient'];
-    private $dbConnection;
+    public $endpointRoutes = ['getClientData', 'kickClient'];
+    public $dbConnection;
 
     public function __construct($request)
     {
-        parent::__construct($request, __CLASS__);
         $this->dbConnection = false;
 
-        $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].hostapd_db_path");
-        if (file_exists($dbLocation)) {
-            $this->dbConnection = new \frieren\orm\SQLite($dbLocation);
-        }
+        parent::__construct($request);
     }
 
-    private function getLeases() {
+    public function getLeases() {
         $dhcpReport = array();
         $leases = explode("\n", @file_get_contents('/var/dhcp.leases'));
         if ($leases) {
@@ -28,7 +24,7 @@ class Clients extends Controller
         return $dhcpReport;
     }
 
-    private function getARPData() {
+    public function getARPData() {
         $arpReport = array();
         exec('cat /proc/net/arp | awk \'{ if ($1 != "IP") {printf "%s %s\n", $1, $4;}}\'', $arpEntries);
         foreach ($arpEntries as $arpEntry) {
@@ -38,9 +34,16 @@ class Clients extends Controller
         return $arpReport;
     }
 
-    private function getSSIDData()
+    public function getSSIDData()
     {
         $ssidData = array();
+
+        $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].hostapd_db_path");
+        if (!file_exists($dbLocation)) {
+            return $ssidData;
+        }
+
+        $this->dbConnection = new \frieren\orm\SQLite($dbLocation);
         $clientRows = $this->dbConnection->queryLegacy("SELECT DISTINCT mac,ssid FROM log WHERE log_type=1 ORDER BY updated_at ASC;");
         foreach ($clientRows as $row) {
             $ssidData[strtolower($row['mac'])] = $row['ssid'];
@@ -48,7 +51,7 @@ class Clients extends Controller
         return $ssidData;
     }
 
-    private function getStations() {
+    public function getStations() {
         $stationsReport = array();
         exec('
             iw dev wlan0 station dump |
@@ -75,7 +78,7 @@ class Clients extends Controller
         return $stationsReport;
     }
 
-    private function getClientData()
+    public function getClientData()
     {
         $connectedClients = array();
         $stationData = $this->getStations();
@@ -95,7 +98,7 @@ class Clients extends Controller
         ));
     }
 
-    private function kickClient()
+    public function kickClient()
     {
         exec("hostapd_cli -i wlan0 deauthenticate {$this->request['mac']}");
         exec("hostapd_cli -i wlan0 disassociate {$this->request['mac']}");

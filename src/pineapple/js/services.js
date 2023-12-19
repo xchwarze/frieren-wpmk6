@@ -56,22 +56,31 @@
                         callback(response.data);
                     }
                 }
-            }, function(response) {     
+            }, function(response) {
+                /*
                 callback(
                     (response.statusText || response.status) ?
                         { error: 'HTTP Error', HTTPError: response.statusText, HTTPCode: response.status } : {}
                 );
+                */
+                if (callback !== undefined) {
+                    if (scope !== undefined) {
+                        callback(response.data, scope);
+                    } else {
+                        callback(response.data);
+                    }
+                }
             });
         });
 
         this.login = function(user, pass, callback){
-            return this.request({system: 'authentication', action: 'login', username: user, password: pass, time: Math.floor((new Date).getTime()/1000)}, function(data){
+            return this.request({module: 'Login', action: 'login', username: user, password: pass, time: Math.floor((new Date).getTime()/1000)}, function(data){
                 callback(data);
             }, this);
         };
 
         this.logout = function(callback){
-            return this.request({system: 'authentication', action: 'logout'}, callback);
+            return this.request({module: 'Login', action: 'logout'}, callback);
         };
 
         this.registerNavbar = function(reloader) {
@@ -83,7 +92,7 @@
         };
 
         this.checkAuth = function(callback){
-            return this.request({system: 'authentication', action: 'checkAuth'}, function(data){
+            return this.request({module: 'Login', action: 'checkAuth'}, function(data){
                 if (callback !== undefined) {
                     callback(data);
                 }
@@ -92,7 +101,7 @@
 
         this.getNotifications = function(callback){
             this.request({
-                system: 'notifications',
+                module: 'Notifications',
                 action: 'listNotifications'
             }, function(data) {
                 callback(data);
@@ -101,14 +110,14 @@
 
         this.clearNotifications = function(){
             this.request({
-                system: 'notifications',
+                module: 'Notifications',
                 action: 'clearNotifications'
             });
         };
 
         this.addNotification = function(notificationMessage){
             this.request({
-                system: 'notifications',
+                module: 'Notifications',
                 action: 'addNotification',
                 message: notificationMessage
             });

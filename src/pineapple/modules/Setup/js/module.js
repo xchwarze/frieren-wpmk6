@@ -134,7 +134,7 @@ registerController('SetupController', ['$api', '$scope', '$interval', '$timeout'
 
     $scope.getDeviceData = function(){
         $api.request({
-            system: 'setup',
+            module: 'Setup',
             action: 'getDeviceData'
         }, function(response) {
             $scope.showFirewallConfig = response.config.showFirewallConfig;
@@ -150,7 +150,7 @@ registerController('SetupController', ['$api', '$scope', '$interval', '$timeout'
     $scope.doSetup = function(){
         $scope.error = '';
         $api.request({
-            system: 'setup',
+            module: 'Setup',
             action: 'performSetup',
             rootPassword: $scope.rootPassword,
             confirmRootPassword: $scope.confirmRootPassword,
@@ -185,7 +185,7 @@ registerController('SetupController', ['$api', '$scope', '$interval', '$timeout'
 
     $scope.checkButton = function(){
         $api.request({
-            system: 'setup',
+            module: 'Setup',
             action: 'checkButtonStatus'
         }, function(response){
             $scope.booted = response.booted;
@@ -199,7 +199,7 @@ registerController('SetupController', ['$api', '$scope', '$interval', '$timeout'
 
     $scope.getChanges = function() {
         $api.request({
-            system: 'setup',
+            module: 'Setup',
             action: 'getChanges'
         }, function(response) {
             if (response.changes !== null) {
@@ -215,7 +215,7 @@ registerController('SetupController', ['$api', '$scope', '$interval', '$timeout'
 
     $scope.populateFields = function() {
         $api.request({
-            system: 'setup',
+            module: 'Setup',
             action: 'populateFields'
         }, function(response) {
             if (response.error === undefined) {

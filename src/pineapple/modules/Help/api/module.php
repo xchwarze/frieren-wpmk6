@@ -3,16 +3,16 @@
 /* Code modified by Frieren Auto Refactor */
 class Help extends Controller
 {
-    protected $endpointRoutes = ['generateDebugFile', 'downloadDebugFile', 'getConsoleOutput'];
+    public $endpointRoutes = ['generateDebugFile', 'downloadDebugFile', 'getConsoleOutput'];
 
-    private function generateDebugFile()
+    public function generateDebugFile()
     {
         @unlink('/tmp/debug.log');
         $this->systemHelper->execBackground("(/pineapple/modules/Help/files/debug 2>&1) > /tmp/debug_generation_output");
         $this->responseHandler->setData(array("success" => true));
     }
 
-    private function downloadDebugFile()
+    public function downloadDebugFile()
     {
         if (!file_exists('/tmp/debug.log')) {
             $this->responseHandler->setError("The debug file is missing.");
@@ -21,7 +21,7 @@ class Help extends Controller
         $this->responseHandler->setData(array("success" => true, "downloadToken" => $this->systemHelper->downloadFile("/tmp/debug.log")));
     }
 
-    private function getConsoleOutput()
+    public function getConsoleOutput()
     {
         $output = "";
         if (file_exists("/tmp/debug_generation_output")) {

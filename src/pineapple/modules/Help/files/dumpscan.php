@@ -84,13 +84,9 @@ if (!file_exists($scanDBPath)) {
 	exit("File ${scanDBPath} does not exist\n");
 }
 
-$dbConnection = new \frieren\orm\SQLite($scanDBPath);
+$dbConnection = new \frieren\orm\SQLite($scanDBPath, false);
 if ($dbConnection === NULL) {
 	exit("Unable to create database connection\n");
-}
-
-if (isset($dbConnection->error['databaseConnectionError'])) {
-	exit($dbConnection->strError() . "\n");
 }
 
 $data = array();

@@ -16,12 +16,12 @@
 
         $scope.getModuleList = (function () {
             $api.request({
-                system: 'modules',
+                module: 'Modules',
                 action: 'getModuleList'
             }, function(data) {
                 if (data.error === undefined){
-                    $scope.systemModules = data.modules.systemModules;
-                    $scope.userModules = data.modules.userModules;
+                    $scope.systemModules = data.systemModules;
+                    $scope.userModules = data.userModules;
                     $scope.processModulesExtras();
                 }
             });
@@ -75,7 +75,7 @@
 
         $scope.login = function(){
             $api.login($scope.username, $scope.password, function(data){
-                if (data.logged_in !== undefined && data.logged_in === false) {
+                if (data.logged !== undefined && data.logged === false) {
                     $scope.message = "Invalid username or password.";
                 } else {
                     window.location.reload();

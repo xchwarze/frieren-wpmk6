@@ -3,19 +3,20 @@
 /* Code modified by Frieren Auto Refactor */
 class Filters extends Controller
 {
-    protected $endpointRoutes = ['getClientData', 'getSSIDData', 'toggleClientMode', 'toggleSSIDMode', 'addClient', 'addClients', 'addSSID', 'removeClient', 'removeSSID', 'removeSSIDs', 'removeClients'];
-    private $dbConnection;
+    public $endpointRoutes = ['getClientData', 'getSSIDData', 'toggleClientMode', 'toggleSSIDMode', 'addClient', 'addClients', 'addSSID', 'removeClient', 'removeSSID', 'removeSSIDs', 'removeClients'];
+    public $dbConnection;
     public function __construct($request)
     {
-        parent::__construct($request, __CLASS__);
         $this->dbConnection = false;
         $dbPath = '/etc/pineapple/filters.db';
         if (file_exists($dbPath)) {
             $this->dbConnection = new \frieren\orm\SQLite($dbPath);
         }
+
+        parent::__construct($request);
     }
 
-    private function getSSIDMode()
+    public function getSSIDMode()
     {
         if (exec("hostapd_cli -i wlan0 karma_get_black_white") === "WHITE") {
             return "Allow";
@@ -23,7 +24,7 @@ class Filters extends Controller
         return "Deny";
     }
 
-    private function getClientMode()
+    public function getClientMode()
     {
         if (exec("hostapd_cli -i wlan0 karma_get_mac_black_white") === "WHITE") {
             return "Allow";
@@ -31,7 +32,7 @@ class Filters extends Controller
         return "Deny";
     }
 
-    private function getSSIDFilters()
+    public function getSSIDFilters()
     {
         $ssidFilters = "";
         $rows = $this->dbConnection->queryLegacy("SELECT * FROM ssid_filter_list;");
@@ -43,7 +44,7 @@ class Filters extends Controller
         return $ssidFilters;
     }
 
-    private function getClientFilters()
+    public function getClientFilters()
     {
         $clientFilters = "";
         $rows = $this->dbConnection->queryLegacy("SELECT * FROM mac_filter_list;");
@@ -55,28 +56,28 @@ class Filters extends Controller
         return $clientFilters;
     }
 
-    private function toggleClientMode()
+    public function toggleClientMode()
     {
         $value = ($this->request['mode'] === 'Allow') ? 'white' : 'black';
         exec("pineap /tmp/pineap.conf mac_filter {$value}");
         $this->systemHelper->uciSet('pineap.@config[0].mac_filter', $value);
     }
 
-    private function toggleSSIDMode()
+    public function toggleSSIDMode()
     {
         $value = ($this->request['mode'] === 'Allow') ? 'white' : 'black';
         exec("pineap /tmp/pineap.conf ssid_filter {$value}");
         $this->systemHelper->uciSet('pineap.@config[0].ssid_filter', $value);
     }
 
-    private function getClientData()
+    public function getClientData()
     {
         $mode = $this->getClientMode();
         $filters = $this->getClientFilters();
         $this->responseHandler->setData(array("mode" => $mode, "clientFilters" => $filters));
     }
 
-    private function getSSIDData()
+    public function getSSIDData()
     {
         $mode = $this->getSSIDMode();
         $filters = $this->getSSIDFilters();
@@ -84,7 +85,7 @@ class Filters extends Controller
     }
 
 
-    private function addSSID()
+    public function addSSID()
     {
         if (!empty($this->request['ssid'])) {
             $ssid_array = is_array($this->request['ssid']) ? $this->request['ssid'] : array($this->request['ssid']);
@@ -97,7 +98,7 @@ class Filters extends Controller
         }
     }
 
-    private function removeSSID()
+    public function removeSSID()
     {
         if (isset($this->request['ssid'])) {
             $ssid = $this->request['ssid'];
@@ -106,7 +107,7 @@ class Filters extends Controller
         }
     }
 
-    private function removeSSIDs()
+    public function removeSSIDs()
     {
         if (isset($this->request['ssids']) && is_array($this->request['ssids'])) {
             foreach ($this->request['ssids'] as $ssid) {
@@ -118,7 +119,7 @@ class Filters extends Controller
         $this->getSSIDData();
     }
 
-    private function addClient()
+    public function addClient()
     {
         if (!empty($this->request['mac'])) {
             $mac_array = is_array($this->request['mac']) ? $this->request['mac'] : array($this->request['mac']);
@@ -132,7 +133,7 @@ class Filters extends Controller
         }
     }
 
-    private function addClients()
+    public function addClients()
     {
         if (isset($this->request['clients']) && is_array($this->request['clients'])) {
             foreach ($this->request['clients'] as $client) {
@@ -145,7 +146,7 @@ class Filters extends Controller
         $this->getClientData();
     }
 
-    private function removeClient()
+    public function removeClient()
     {
         if (isset($this->request['mac'])) {
             $mac = strtoupper(trim($this->request['mac']));
@@ -154,7 +155,7 @@ class Filters extends Controller
         }
     }
 
-    private function removeClients()
+    public function removeClients()
     {
         if (isset($this->request['clients']) && is_array($this->request['clients'])) {
             foreach ($this->request['clients'] as $client) {

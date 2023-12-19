@@ -6,25 +6,27 @@ require_once('/pineapple/modules/PineAP/api/PineAPHelper.php');
 
 class PineAP extends Controller
 {
-    protected $endpointRoutes = ['getPool', 'clearPool', 'addSSID', 'addSSIDs', 'removeSSID', 'getPoolLocation', 'setPoolLocation', 'clearSessionCounter', 'setPineAPSettings', 'getPineAPSettings', 'setEnterpriseSettings', 'getEnterpriseSettings', 'detectEnterpriseCertificate', 'generateEnterpriseCertificate', 'clearEnterpriseCertificate', 'clearEnterpriseDB', 'getEnterpriseData', 'startHandshakeCapture', 'stopHandshakeCapture', 'getHandshake', 'getAllHandshakes', 'checkCaptureStatus', 'downloadHandshake', 'downloadAllHandshakes', 'clearAllHandshakes', 'deleteHandshake', 'deauth', 'enable', 'disable', 'enableAutoStart', 'disableAutoStart', 'downloadPineAPPool', 'loadProbes', 'inject', 'countSSIDs', 'downloadJTRHashes', 'downloadHashcatHashes'];
+    public $endpointRoutes = ['getPool', 'clearPool', 'addSSID', 'addSSIDs', 'removeSSID', 'getPoolLocation', 'setPoolLocation', 'clearSessionCounter', 'setPineAPSettings', 'getPineAPSettings', 'setEnterpriseSettings', 'getEnterpriseSettings', 'detectEnterpriseCertificate', 'generateEnterpriseCertificate', 'clearEnterpriseCertificate', 'clearEnterpriseDB', 'getEnterpriseData', 'startHandshakeCapture', 'stopHandshakeCapture', 'getHandshake', 'getAllHandshakes', 'checkCaptureStatus', 'downloadHandshake', 'downloadAllHandshakes', 'clearAllHandshakes', 'deleteHandshake', 'deauth', 'enable', 'disable', 'enableAutoStart', 'disableAutoStart', 'downloadPineAPPool', 'loadProbes', 'inject', 'countSSIDs', 'downloadJTRHashes', 'downloadHashcatHashes'];
     const EAP_USER_FILE = "/etc/pineape/hostapd-pineape.eap_user";
 
-    private $pineAPHelper;
-    private $dbConnection;
+    public $pineAPHelper;
+    public $dbConnection;
 
     public function __construct($request)
     {
-        parent::__construct($request, __CLASS__);
         $this->pineAPHelper = new PineAPHelper();
         $this->dbConnection = false;
 
-        $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].ssid_db_path");
+        $systemHelper = new \frieren\helper\OpenWrtHelper();
+        $dbLocation = $systemHelper->uciGet("pineap.@config[0].ssid_db_path");
         if (file_exists($dbLocation)) {
             $this->dbConnection = new \frieren\orm\SQLite($dbLocation);
         }
+
+        parent::__construct($request);
     }
 
-    private function toggleComment($fileName, $lineNumber, $comment)
+    public function toggleComment($fileName, $lineNumber, $comment)
     {
         $data = file_get_contents($fileName);
         $lines = explode("\n", $data);
@@ -44,7 +46,7 @@ class PineAP extends Controller
         file_put_contents($fileName, join("\n", $lines));
     }
 
-    private function isCommented($fileName, $lineNumber)
+    public function isCommented($fileName, $lineNumber)
     {
         $data = file_get_contents($fileName);
         $lines = explode("\n", $data);
@@ -52,7 +54,7 @@ class PineAP extends Controller
         return substr($line, 0, 1) === "#";
     }
 
-    private function getDowngradeType()
+    public function getDowngradeType()
     {
         if (!$this->isCommented(PineAP::EAP_USER_FILE, 6)) {
             return "MSCHAPV2";
@@ -62,28 +64,28 @@ class PineAP extends Controller
         return "DISABLE";
     }
 
-    private function enableMSCHAPV2Downgrade()
+    public function enableMSCHAPV2Downgrade()
     {
         $this->toggleComment(PineAP::EAP_USER_FILE, 4, true);
         $this->toggleComment(PineAP::EAP_USER_FILE, 5, true);
         $this->toggleComment(PineAP::EAP_USER_FILE, 6, false);
     }
 
-    private function enableGTCDowngrade()
+    public function enableGTCDowngrade()
     {
         $this->toggleComment(PineAP::EAP_USER_FILE, 4, true);
         $this->toggleComment(PineAP::EAP_USER_FILE, 5, false);
         $this->toggleComment(PineAP::EAP_USER_FILE, 6, true);
     }
 
-    private function disableDowngrade()
+    public function disableDowngrade()
     {
         $this->toggleComment(PineAP::EAP_USER_FILE, 4, false);
         $this->toggleComment(PineAP::EAP_USER_FILE, 5, true);
         $this->toggleComment(PineAP::EAP_USER_FILE, 6, true);
     }
 
-    private function loadProbes()
+    public function loadProbes()
     {
         if (!\helper\checkRunningFull("/usr/sbin/pineapd")) {
             $this->responseHandler->setData(array('success' => false, 'reason' => "not running"));
@@ -100,7 +102,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array('success' => true, 'probes' => implode("\n", array_unique($probesArray))));
     }
 
-    private function downloadPineAPPool()
+    public function downloadPineAPPool()
     {
         $poolLocation = '/tmp/ssid_pool.txt';
         $data = $this->getPoolData();
@@ -108,7 +110,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile($poolLocation)));
     }
 
-    private function countSSIDs()
+    public function countSSIDs()
     {
         $this->responseHandler->setData(array(
             'SSIDs' => substr_count($this->getPoolData(), "\n"),
@@ -116,31 +118,31 @@ class PineAP extends Controller
         ));
     }
 
-    private function enable()
+    public function enable()
     {
         $this->pineAPHelper->enablePineAP();
         $this->responseHandler->setData(array("success" => true));
     }
 
-    private function disable()
+    public function disable()
     {
         $this->pineAPHelper->disablePineAP();
         $this->responseHandler->setData(array("success" => true));
     }
 
-    private function enableAutoStart()
+    public function enableAutoStart()
     {
         $this->systemHelper->uciSet("pineap.@config[0].autostart", 1);
         $this->responseHandler->setData(array("success" => true));
     }
 
-    private function disableAutoStart()
+    public function disableAutoStart()
     {
         $this->systemHelper->uciSet("pineap.@config[0].autostart", 0);
         $this->responseHandler->setData(array("success" => true));
     }
 
-    private function checkPineAP()
+    public function checkPineAP()
     {
         if (!$this->systemHelper->checkRunning('/usr/sbin/pineapd', true)) {
             $this->responseHandler->setData(array('error' => 'Please start PineAP', 'success' => false));
@@ -149,7 +151,7 @@ class PineAP extends Controller
         return true;
     }
 
-    private function deauth()
+    public function deauth()
     {
         if ($this->checkPineAP()) {
             $sta = $this->request['sta'];
@@ -179,7 +181,7 @@ class PineAP extends Controller
         }
     }
 
-    private function getPoolData()
+    public function getPoolData()
     {
         $ssidPool = "";
         $rows = $this->dbConnection->queryLegacy('SELECT * FROM ssids;');
@@ -191,7 +193,7 @@ class PineAP extends Controller
         return $ssidPool;
     }
 
-    private function getNewPoolData()
+    public function getNewPoolData()
     {
         $ssidPool = "";
         $rows = $this->dbConnection->queryLegacy('SELECT * FROM ssids WHERE new_ssid=1;');
@@ -203,19 +205,19 @@ class PineAP extends Controller
         return $ssidPool;
     }
 
-    private function getPool()
+    public function getPool()
     {
         $this->responseHandler->setData(array('ssidPool' => $this->getPoolData(), 'success' => true));
     }
 
-    private function clearPool()
+    public function clearPool()
     {
         $this->checkPineAP();
         $this->dbConnection->queryLegacy('DELETE FROM ssids;');
         $this->responseHandler->setData(array('success' => true));
     }
 
-    private function addSSID()
+    public function addSSID()
     {
         $this->checkPineAP();
         $ssid = $this->request['ssid'];
@@ -228,7 +230,7 @@ class PineAP extends Controller
         }
     }
 
-    private function addSSIDs()
+    public function addSSIDs()
     {
         $this->checkPineAP();
         $ssidList = $this->request['ssids'];
@@ -242,7 +244,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array('success' => true));
     }
 
-    private function removeSSID()
+    public function removeSSID()
     {
         $this->checkPineAP();
         $ssid = $this->request['ssid'];
@@ -254,20 +256,20 @@ class PineAP extends Controller
         }
     }
 
-    private function getPoolLocation()
+    public function getPoolLocation()
     {
         $dbBasePath = dirname($this->systemHelper->uciGet("pineap.@config[0].ssid_db_path"));
         $this->responseHandler->setData(array('poolLocation' => $dbBasePath . "/"));
     }
 
-    private function setPoolLocation()
+    public function setPoolLocation()
     {
         $dbLocation = dirname($this->request['location'] . '/fake_file');
         $this->systemHelper->uciSet("pineap.@config[0].ssid_db_path", $dbLocation . '/pineapple.db');
         $this->responseHandler->setData(array('success' => true));
     }
 
-    private function clearSessionCounter()
+    public function clearSessionCounter()
     {
         $ret = 0;
         $output = array();
@@ -279,7 +281,7 @@ class PineAP extends Controller
         }
     }
 
-    private function getPineAPSettings()
+    public function getPineAPSettings()
     {
         $sourceMAC = $this->pineAPHelper->getSource();
         $sourceMAC = $sourceMAC === false ? '00:00:00:00:00:00' : $sourceMAC;
@@ -309,7 +311,7 @@ class PineAP extends Controller
         return $settings;
     }
 
-    private function setPineAPSettings()
+    public function setPineAPSettings()
     {
         $settings = $this->request['settings'];
         if ($settings->allowAssociations) {
@@ -377,7 +379,7 @@ class PineAP extends Controller
     }
 
 
-    private function detectEnterpriseCertificate()
+    public function detectEnterpriseCertificate()
     {
         if (file_exists('/etc/pineape/certs/server.crt')) {
             $this->responseHandler->setData(array("installed" => true));
@@ -386,7 +388,7 @@ class PineAP extends Controller
         }
     }
 
-    private function generateEnterpriseCertificate()
+    public function generateEnterpriseCertificate()
     {
         $params = $this->request['certSettings'];
 
@@ -421,7 +423,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array("success" => true));
     }
 
-    private function clearEnterpriseCertificate()
+    public function clearEnterpriseCertificate()
     {
         exec("cd /etc/pineape/certs && ./clean.sh");
         $this->systemHelper->uciSet("wireless.@wifi-iface[2].disabled", "1");
@@ -429,7 +431,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array("success" => true));
     }
 
-    private function clearEnterpriseDB()
+    public function clearEnterpriseDB()
     {
         $dbLocation = "/etc/pineapple/pineape.db";
         $this->dbConnection = new \frieren\orm\SQLite($dbLocation);
@@ -438,7 +440,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array("success" => true));
     }
 
-    private function getEnterpriseSettings()
+    public function getEnterpriseSettings()
     {
         $settings = array(
             'enabled' => $this->getEnterpriseRunning(),
@@ -452,7 +454,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array("settings" => $settings));
     }
 
-    private function setEnterpriseSettings()
+    public function setEnterpriseSettings()
     {
         $settings = $this->request['settings'];
         if ((strlen($settings->ssid) < 1 || strlen($settings->ssid) > 32) ||
@@ -491,7 +493,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array("success" => true));
     }
 
-    private function getEnterpriseData()
+    public function getEnterpriseData()
     {
         $dbLocation = "/etc/pineapple/pineape.db";
         $this->dbConnection = new \frieren\orm\SQLite($dbLocation);
@@ -519,7 +521,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array("success" => true, "chalrespdata" => $chalrespdata, "basicdata" => $basicdata));
     }
 
-    private function downloadJTRHashes()
+    public function downloadJTRHashes()
     {
         $jtrLocation = '/tmp/enterprise_jtr.txt';
         $dbLocation = "/etc/pineapple/pineape.db";
@@ -536,7 +538,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile($jtrLocation)));
     }
 
-    private function downloadHashcatHashes()
+    public function downloadHashcatHashes()
     {
         $hashcatLocation = '/tmp/enterprise_hashcat.txt';
         $dbLocation = "/etc/pineapple/pineape.db";
@@ -553,7 +555,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile($hashcatLocation)));
     }
 
-    private function getEnterpriseRunning()
+    public function getEnterpriseRunning()
     {
         exec("hostapd_cli -i wlan0-2 pineape_enable_status", $statusOutput);
         if ($statusOutput[0] == "ENABLED") {
@@ -562,7 +564,7 @@ class PineAP extends Controller
         return false;
     }
 
-    private function getEnterpriseAllowAssocs()
+    public function getEnterpriseAllowAssocs()
     {
         exec("hostapd_cli -i wlan0-2 pineape_auth_passthrough_status", $statusOutput);
         if ($statusOutput[0] == "ENABLED") {
@@ -571,7 +573,7 @@ class PineAP extends Controller
         return false;
     }
 
-    private function startHandshakeCapture()
+    public function startHandshakeCapture()
     {
         $bssid = $this->request['bssid'];
         $channel = $this->request['channel'];
@@ -582,13 +584,13 @@ class PineAP extends Controller
         }
     }
 
-    private function stopHandshakeCapture()
+    public function stopHandshakeCapture()
     {
         $this->systemHelper->execBackground('pineap /tmp/pineap.conf handshake_capture_stop');
         $this->responseHandler->setData(array('success' => true));
     }
 
-    private function getHandshake()
+    public function getHandshake()
     {
         $bssid = str_replace(':', '-', $this->request['bssid']);
         if (file_exists("/tmp/handshakes/{$bssid}_full.pcap")) {
@@ -600,7 +602,7 @@ class PineAP extends Controller
         }
     }
 
-    private function getAllHandshakes()
+    public function getAllHandshakes()
     {
         $handshakes = array();
         foreach (glob("/tmp/handshakes/*.pcap") as $handshake) {
@@ -612,14 +614,14 @@ class PineAP extends Controller
         $this->responseHandler->setData(array("handshakes" => $handshakes));
     }
 
-    private function downloadAllHandshakes()
+    public function downloadAllHandshakes()
     {
         @unlink('/tmp/handshakes/handshakes.tar.gz');
         exec("tar -czf /tmp/handshakes/handshakes.tar.gz -C /tmp/handshakes .");
         $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile("/tmp/handshakes/handshakes.tar.gz")));
     }
 
-    private function clearAllHandshakes()
+    public function clearAllHandshakes()
     {
         @unlink("/tmp/handshakes/handshakes.tar.gz");
         foreach (glob("/tmp/handshakes/*.pcap") as $handshake) {
@@ -629,7 +631,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array("success" => true));
     }
 
-    private function checkCaptureStatus()
+    public function checkCaptureStatus()
     {
         $bssid = $this->request['bssid'];
         exec("pineap /tmp/pineap.conf get_status", $status_output);
@@ -654,7 +656,7 @@ class PineAP extends Controller
         return 0;
     }
 
-    private function downloadHandshake()
+    public function downloadHandshake()
     {
         $bssid = str_replace(':', '-', $this->request['bssid']);
         $type = $this->request['type'];
@@ -672,7 +674,7 @@ class PineAP extends Controller
         }
     }
 
-    private function deleteHandshake()
+    public function deleteHandshake()
     {
         $bssid = str_replace(':', '-', $this->request['bssid']);
         @unlink("/tmp/handshakes/${bssid}_full.pcap");
@@ -683,7 +685,7 @@ class PineAP extends Controller
         $this->responseHandler->setData(array('success' => true));
     }
 
-    private function inject()
+    public function inject()
     {
         $payload = preg_replace('/[^A-Fa-f0-9]/', '', $this->request['payload']);
         if (hex2bin($payload) === false) {

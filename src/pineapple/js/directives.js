@@ -603,7 +603,7 @@
 
                 $scope.getInstalledModules = (function() {
                     $api.request({
-                        module: "ModuleManager",
+                        module: "Modules",
                         action: "getInstalledModules"
                     }, function(response) {
                         $rootScope.installedModules = response.installedModules;
@@ -624,7 +624,7 @@
                 $scope.checkDestination = (function(moduleName, moduleSize, moduleType) {
                     $(window).scrollTop(0);
                     $api.request({
-                        module: 'ModuleManager',
+                        module: 'Modules',
                         action: 'checkDestination',
                         name: moduleName,
                         size: moduleSize
@@ -637,7 +637,7 @@
 
                 $scope.downloadModule = (function(dest) {
                     $api.request({
-                        module: 'ModuleManager',
+                        module: 'Modules',
                         action: 'downloadModule',
                         moduleName: $scope.selectedModule.module,
                         destination: dest
@@ -646,7 +646,7 @@
                             $scope.downloading = true;
                             var ival = $interval(function() {
                                 $api.request({
-                                    module: 'ModuleManager',
+                                    module: 'Modules',
                                     action: 'downloadStatus',
                                     moduleName: $scope.selectedModule.module,
                                     destination: dest,
@@ -670,14 +670,14 @@
                     $scope.installing = true;
 
                     $api.request({
-                        module: 'ModuleManager',
+                        module: 'Modules',
                         action: 'installModule',
                         moduleName: $scope.selectedModule.module,
                         destination: dest
                     }, function() {
                         var ival = $interval(function() {
                             $api.request({
-                                module: 'ModuleManager',
+                                module: 'Modules',
                                 action: 'installStatus'
                             }, function(response) {
                                 if (response.success === true) {
@@ -687,7 +687,7 @@
                                     $scope.installing = false;
                                     $scope.getInstalledModules();
                                     $api.reloadNavbar();
-                                    if ($scope.selectedModule.module === 'ModuleManager') {
+                                    if ($scope.selectedModule.module === 'Modules') {
                                         window.location.reload();
                                     } else {
                                         $scope.selectedModule = null;

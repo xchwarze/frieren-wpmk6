@@ -73,12 +73,12 @@
             </li>
             <li ng-if="$index == 3" ng-repeat-end>
                 <a ng-class="getModuleClass()" onclick="$('.module-nav').collapse('toggle')" href='' data-ignore="true">
-                    <img class="module-icon pull-right" src="/modules/ModuleManager/module_icon.svg"/>
+                    <img class="module-icon pull-right" src="/modules/Modules/module_icon.svg"/>
                     Modules <span class="caret"></span>
                 </a>
                 <ul class="nav module-nav collapse">
-                    <li ng-class="getClass('ModuleManager')" module="ModuleManager">
-                        <a href="#!/modules/ModuleManager" title="Manage Modules">Manage Modules</a>
+                    <li ng-class="getClass('Modules')" module="Modules">
+                        <a href="#!/modules/Modules" title="Manage Modules">Manage Modules</a>
                     </li>
                     <li ng-class="getClass(userModule.name)" ng-repeat="userModule in userModules" module="{{ userModule.name }}">
                         <a href="#!/modules/{{ userModule.name }}" title="{{ userModule.title }}">

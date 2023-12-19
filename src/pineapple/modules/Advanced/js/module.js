@@ -270,7 +270,6 @@ registerController("AdvancedUpgradeController", ['$api', '$scope', '$interval', 
     });
 
     $scope.performUpgrade = (function(isManuelUpdate) {
-        console.log({isManuelUpdate});
         $api.request({
             module: 'Advanced',
             action: 'performUpgrade',

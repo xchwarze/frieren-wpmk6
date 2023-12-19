@@ -218,4 +218,46 @@ class SQLite
         $row = $result->fetchArray();
         return (int) $row[0];
     }
+
+    public static function formatQuery(...$query)
+    {
+        $sqlQuery = $query[0][0];
+        $sqlParameters = array_slice($query[0], 1);
+        foreach ($sqlParameters as &$param) {
+            if (is_string($param)) {
+                $param = \SQLite3::escapeString($param);
+            }
+        }
+        return vsprintf($sqlQuery, $sqlParameters);
+    }
+
+    public function queryLegacy(...$query)
+    {
+        $safeQuery = SQLite::formatQuery($query);
+        $result = $this->db->query($safeQuery);
+
+        if (!$result) {
+            $this->error['databaseQueryError'] = $this->db->lastErrorMsg();
+            return $this->error;
+        }
+
+        $resultArray = [];
+        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+            $resultArray[] = $row;
+        }
+
+        return $resultArray;
+    }
+
+    public function execLegacy(...$query)
+    {
+        $safeQuery = SQLite::formatQuery($query);
+
+        try {
+            return $this->db->exec($safeQuery);
+        } catch (\Exception $e) {
+            $this->error['databaseExecutionError'] = $e->getMessage();
+            return false;
+        }
+    }
 }

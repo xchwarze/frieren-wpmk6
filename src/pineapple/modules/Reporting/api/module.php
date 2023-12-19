@@ -3,9 +3,9 @@
 /* Code modified by Frieren Auto Refactor */
 class Reporting extends Controller
 {
-    protected $endpointRoutes = ['getReportConfiguration', 'getReportContents', 'getEmailConfiguration', 'setReportConfiguration', 'setReportContents', 'setEmailConfiguration', 'testReportConfiguration'];
+    public $endpointRoutes = ['getReportConfiguration', 'getReportContents', 'getEmailConfiguration', 'setReportConfiguration', 'setReportContents', 'setEmailConfiguration', 'testReportConfiguration'];
 
-    private function getReportConfiguration()
+    public function getReportConfiguration()
     {
         $this->responseHandler->setData([
             "config" => [
@@ -18,7 +18,7 @@ class Reporting extends Controller
         ]);
     }
 
-    private function getReportContents()
+    public function getReportContents()
     {
         $this->responseHandler->setData([
             "config" => [
@@ -32,7 +32,7 @@ class Reporting extends Controller
         ]);
     }
 
-    private function getEmailConfiguration()
+    public function getEmailConfiguration()
     {
         $this->responseHandler->setData([
             "config" => [
@@ -49,7 +49,7 @@ class Reporting extends Controller
         ]);
     }
 
-    private function setReportConfiguration()
+    public function setReportConfiguration()
     {
         $this->systemHelper->uciSet("reporting.@settings[0].save_report", $this->request['config']->storeReport);
         $this->systemHelper->uciSet("reporting.@settings[0].send_email", $this->request['config']->sendReport);
@@ -68,7 +68,7 @@ class Reporting extends Controller
         exec("/etc/init.d/cron start");
     }
 
-    private function setReportContents()
+    public function setReportContents()
     {
         $this->systemHelper->uciSet("reporting.@settings[0].log", $this->request['config']->pineAPLog);
         $this->systemHelper->uciSet("reporting.@settings[0].clear_log", $this->request['config']->clearLog);
@@ -79,7 +79,7 @@ class Reporting extends Controller
         $this->responseHandler->setData(["success" => true]);
     }
 
-    private function setEmailConfiguration()
+    public function setEmailConfiguration()
     {
         $this->systemHelper->uciSet("reporting.@ssmtp[0].from", $this->request['config']->from);
         $this->systemHelper->uciSet("reporting.@ssmtp[0].to", $this->request['config']->to);
@@ -107,7 +107,7 @@ class Reporting extends Controller
         $this->responseHandler->setData(["success" => true]);
     }
 
-    private function testReportConfiguration()
+    public function testReportConfiguration()
     {
         $this->systemHelper->execBackground('/pineapple/modules/Reporting/files/reporting force_email');
         $this->responseHandler->setData(["success" => true]);

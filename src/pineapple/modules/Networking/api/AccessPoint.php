@@ -3,7 +3,7 @@
 /* Code modified by Frieren Auto Refactor */
 class AccessPoint
 {
-    protected function saveAPConfig($apConfig)
+    public function saveAPConfig($apConfig)
     {
         if (is_array($apConfig)) {
             $apConfig = (object)$apConfig;
@@ -27,7 +27,7 @@ class AccessPoint
         return ["success" => true];
     }
 
-    protected function getAPConfig($getChannelInfo = true)
+    public function getAPConfig($getChannelInfo = true)
     {
         $channels = [];
         if ($getChannelInfo) {

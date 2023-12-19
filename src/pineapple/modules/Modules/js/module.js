@@ -1,4 +1,4 @@
-registerController("ModuleManagerController", ['$api', '$scope', '$timeout', '$interval', '$templateCache', '$rootScope', function($api, $scope, $timeout, $interval, $templateCache, $rootScope){
+registerController("ModulesController", ['$api', '$scope', '$timeout', '$interval', '$templateCache', '$rootScope', function($api, $scope, $timeout, $interval, $templateCache, $rootScope){
     $rootScope.availableModules = [];
     $rootScope.installedModules = [];
     $scope.installedModule = "";
@@ -13,7 +13,7 @@ registerController("ModuleManagerController", ['$api', '$scope', '$timeout', '$i
     $scope.getAvailableModules = (function() {
         $scope.loading = true;
         $api.request({
-            module: "ModuleManager",
+            module: "Modules",
             action: "getAvailableModules"
         }, function(response) {
             $scope.loading = false;
@@ -30,7 +30,7 @@ registerController("ModuleManagerController", ['$api', '$scope', '$timeout', '$i
 
     $scope.getInstalledModules = (function() {
         $api.request({
-            module: "ModuleManager",
+            module: "Modules",
             action: "getInstalledModules"
         }, function(response) {
             $rootScope.installedModules = response.installedModules;
@@ -52,7 +52,7 @@ registerController("ModuleManagerController", ['$api', '$scope', '$timeout', '$i
 
     $scope.removeModule = (function(name) {
         $api.request({
-            module: 'ModuleManager',
+            module: 'Modules',
             action: 'removeModule',
             moduleName: name
         }, function(response) {
@@ -69,7 +69,7 @@ registerController("ModuleManagerController", ['$api', '$scope', '$timeout', '$i
 
     $scope.restoreSDcardModules = (function() {
         $api.request({
-            module: 'ModuleManager',
+            module: 'Modules',
             action: 'restoreSDcardModules'
         }, function(response) {
             if (response.restored === true) {

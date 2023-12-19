@@ -3,7 +3,7 @@
 class DeviceConfig
 {
     // third party modules can change the options based on this
-    // the allowed values are: "nano" or "tetra"
+    // the allowed values are: 'nano' or 'tetra'
     const DEVICE_TYPE = 'tetra';
 
     const USE_INTERNAL_STORAGE = true;
@@ -17,4 +17,12 @@ class DeviceConfig
 
     // hide wlan0 in getClientInterfaces() enumeration
     const HIDE_WLAN0_CLIENT = true;
+
+    // Remote content
+    const SERVER_URL = 'https://raw.githubusercontent.com/xchwarze/wifi-pineapple-community/main';
+    const NEWS_PATH = '%s/json/news.json';
+    const UPGRADE_PATH = '%s/json/upgrades.json';
+    const MODULES_PATH = '%s/modules/build/modules.json';
+    const INSTALL_MODULE_PATH = '%s/modules/build/%s';
+    const OUI_PATH = '%s/oui/oui.txt';
 }

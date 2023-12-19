@@ -4,60 +4,65 @@
 class Notes extends Controller
 {
 
-    protected $endpointRoutes = ['setName', 'setNote', 'getNotes', 'getNote', 'deleteNote', 'downloadNotes', 'getKeys'];
-    private $dbConnection;
+    public $endpointRoutes = ['setName', 'setNote', 'getNotes', 'getNote', 'deleteNote', 'downloadNotes', 'getKeys'];
+    public $dbConnection;
     const DATABASE = "/etc/pineapple/pineapple.db";
 
     public function __construct($request)
     {
-        parent::__construct($request, __CLASS__);
         $this->dbConnection = new \frieren\orm\SQLite(self::DATABASE);
-        if (!empty($this->dbConnection->error)) {
-            $this->responseHandler->setError($this->dbConnection->strError());
-            return;
-        }
         $this->dbConnection->execLegacy("CREATE TABLE IF NOT EXISTS notes (type INT, key TEXT UNIQUE NOT NULL, name TEXT, note TEXT);");
-        if (!empty($this->dbConnection->error)) {
-            $this->responseHandler->setError($this->dbConnection->strError());
-        }
+
+        parent::__construct($request);
     }
 
-    protected function setName($type, $key, $name)
+    public function setName()
     {
-        return $this->dbConnection->execLegacy("INSERT OR REPLACE INTO notes (type, key, name) VALUES('%d', '%s', '%s');", $type, $key, $name);
+        $status = $this->dbConnection->execLegacy(
+            "INSERT OR REPLACE INTO notes (type, key, name) VALUES('%d', '%s', '%s');",
+            $this->request['type'], $this->request['key'], $this->request['name']
+        );
+        $this->responseHandler->setData($status);
     }
 
-    protected function setNote($type, $key, $name, $note)
+    public function setNote()
     {
-        if (empty($name) && empty($note)) {
-            return $this->deleteNote($key);
+        if (empty($this->request['name']) && empty($this->request['note'])) {
+            $status = $this->deleteNote($this->request['key']);
         } else {
-            return $this->dbConnection->execLegacy("INSERT OR REPLACE INTO notes (type, key, name, note) VALUES ('%d', '%s', '%s', '%s');", $type, $key, $name, $note);
+            $status = $this->dbConnection->execLegacy(
+                "INSERT OR REPLACE INTO notes (type, key, name, note) VALUES ('%d', '%s', '%s', '%s');",
+                $this->request['type'], $this->request['key'], $this->request['name'], $this->request['note']
+            );
         }
+
+        $this->responseHandler->setData($status);
     }
 
-    protected function getNotes()
+    public function getNotes()
     {
         $macs = $this->dbConnection->queryLegacy("SELECT type, key, name, note FROM notes WHERE type=0;");
         $ssids = $this->dbConnection->queryLegacy("SELECT type, key, name, note FROM notes WHERE type=1;");
-        return array("macs" => $macs, "ssids" => $ssids);
+        $this->responseHandler->setData(array("macs" => $macs, "ssids" => $ssids));
     }
 
-    protected function getNote($key)
+    public function getNote()
     {
-        return array("note" => $this->dbConnection->queryLegacy("SELECT type, key, name, note FROM notes WHERE key='%s';", $key));
+        $data = $this->dbConnection->queryLegacy("SELECT type, key, name, note FROM notes WHERE key='%s';", $this->request['key']);
+        $this->responseHandler->setData(array("note" => $data));
     }
 
-    protected function deleteNote($key)
+    public function deleteNote()
     {
-        if (!isset($key)) {
-            return array("success" => false);
+        if (!isset($this->request['key'])) {
+            $this->responseHandler->setData(array("success" => false));
         }
-        $this->dbConnection->execLegacy("DELETE FROM notes WHERE key='%s';", $key);
-        return array("success" => true);
+
+        $this->dbConnection->execLegacy("DELETE FROM notes WHERE key='%s';", $this->request['key']);
+        $this->responseHandler->setData(array("success" => true));
     }
 
-    protected function downloadNotes()
+    public function downloadNotes()
     {
         $noteData = $this->dbConnection->queryLegacy('SELECT * FROM notes;');
         foreach ($noteData as $idx => $note) {
@@ -70,16 +75,16 @@ class Notes extends Controller
         }
         $fileName = '/tmp/notes.json';
         file_put_contents($fileName, json_encode($noteData, JSON_PRETTY_PRINT));
-        return array("download" => $this->systemHelper->downloadFile($fileName));
+        $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile($fileName)));
     }
 
-    protected function getKeys()
+    public function getKeys()
     {
         $keys = array();
         $res = $this->dbConnection->queryLegacy("SELECT key FROM notes;");
         foreach ($res as $idx => $key) {
             $keys[] = $key['key'];
         }
-        return array("keys" => $keys);
+        $this->responseHandler->setData(array("keys" => $keys));
     }
 }

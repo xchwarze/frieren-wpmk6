@@ -6,18 +6,16 @@
 
 class Dashboard extends Controller
 {
-    protected $endpointRoutes = ['getOverviewData', 'getLandingPageData', 'getBulletins'];
-    private $dbConnection;
+    public $endpointRoutes = ['getOverviewData', 'getLandingPageData', 'getBulletins'];
+    public $dbConnection;
     public function __construct($request)
     {
-        parent::__construct($request, __CLASS__);
         $this->dbConnection = false;
-        if (file_exists('/tmp/landingpage.db')) {
-            $this->dbConnection = new \frieren\orm\SQLite('/tmp/landingpage.db');
-        }
+
+        parent::__construct($request);
     }
 
-    private function getOverviewData()
+    public function getOverviewData()
     {
         $this->responseHandler->setData([
             "cpu" => $this->getCpu(),
@@ -26,7 +24,7 @@ class Dashboard extends Controller
         ]);
     }
 
-    private function getCpu()
+    public function getCpu()
     {
         $loads = sys_getloadavg();
         $load = round($loads[0]/2*100, 1);
@@ -38,7 +36,7 @@ class Dashboard extends Controller
         return $load;
     }
 
-    private function getUptime()
+    public function getUptime()
     {
         $seconds = intval(explode('.', file_get_contents('/proc/uptime'))[0]);
         $days = floor($seconds / (24 * 60 * 60));
@@ -50,14 +48,16 @@ class Dashboard extends Controller
         return $hours . ($hours == 1 ? " hour, " : " hours, ") . $minutes . ($minutes == 1 ? " minute" : " minutes");
     }
 
-    private function getClients()
+    public function getClients()
     {
         return exec('iw dev wlan0 station dump | grep Station | wc -l');
     }
 
-    private function getLandingPageData()
+    public function getLandingPageData()
     {
-        if ($this->dbConnection !== false) {
+        if (file_exists('/tmp/landingpage.db')) {
+            $this->dbConnection = new \frieren\orm\SQLite('/tmp/landingpage.db');
+
             $stats = [];
             $stats['Chrome'] = count($this->dbConnection->queryLegacy('SELECT browser FROM user_agents WHERE browser=\'chrome\';'));
             $stats['Safari'] = count($this->dbConnection->queryLegacy('SELECT browser FROM user_agents WHERE browser=\'safari\';'));
@@ -65,23 +65,24 @@ class Dashboard extends Controller
             $stats['Opera'] = count($this->dbConnection->queryLegacy('SELECT browser FROM user_agents WHERE browser=\'opera\';'));
             $stats['Internet Explorer'] = count($this->dbConnection->queryLegacy('SELECT browser FROM user_agents WHERE browser=\'internet_explorer\';'));
             $stats['Other'] = count($this->dbConnection->queryLegacy('SELECT browser FROM user_agents WHERE browser=\'other\';'));
-            $this->responseHandler->setData($stats);
-        } else {
-            $this->responseHandler->setError("A connection to the database is not established.");
+
+            return $this->responseHandler->setData($stats);
         }
+
+        $this->responseHandler->setError("landingpage.db not found");
     }
 
 
-    private function getBulletins()
+    public function getBulletins()
     {
-        $bulletinData = @$this->systemHelper->fileGetContentsSSL(self::REMOTE_URL . "/json/news.json");
+        $url = sprintf(\DeviceConfig::NEWS_PATH, \DeviceConfig::SERVER_URL);
+        $bulletinData = @$this->systemHelper->fileGetContentsSSL($url);
         if ($bulletinData !== false) {
-            $this->responseHandler->setData(json_decode($bulletinData));
-            if (json_last_error() === JSON_ERROR_NONE) {
-                return;
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $this->responseHandler->setData(json_decode($bulletinData));
             }
         }
         
-        $this->responseHandler->setError("Error connecting to " . self::REMOTE_NAME . ". Please check your connection.");
+        $this->responseHandler->setError("Error connecting to remote host. Please check your connection.");
     }
 }

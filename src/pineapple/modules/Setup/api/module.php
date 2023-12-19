@@ -3,9 +3,9 @@
 /* Code modified by Frieren Auto Refactor */
 class Setup extends Controller
 {
-    protected $endpointRoutes = [];
+    public $endpointRoutes = [];
 
-    private function changePassword()
+    public function changePassword()
     {
         if ($this->request['rootPassword'] !== $this->request['confirmRootPassword']) {
             $this->responseHandler->setError('The root passwords do not match.');
@@ -25,7 +25,7 @@ class Setup extends Controller
         return true;
     }
 
-    private function checkButtonStatus()
+    public function checkButtonStatus()
     {
         $buttonPressed = file_exists('/tmp/button_setup');
         $bootStatus = !file_exists('/etc/pineapple/init');
@@ -34,7 +34,7 @@ class Setup extends Controller
         return $buttonPressed;
     }
 
-    private function getChanges()
+    public function getChanges()
     {
         if (file_exists("/pineapple/changes")) {
             $changes = file_get_contents("/pineapple/changes");
@@ -46,7 +46,7 @@ class Setup extends Controller
         return true;
     }
 
-    private function getDeviceData()
+    public function getDeviceData()
     {
         # Disable setup in "keep settings" scenario
         $complete = file_exists('/etc/pineapple/setup_complete');
@@ -60,14 +60,14 @@ class Setup extends Controller
         ));
     }
 
-    private function populateFields()
+    public function populateFields()
     {
         exec('cat /sys/class/ieee80211/phy0/macaddress|awk -F ":" \'{print $5""$6 }\'| tr a-z A-Z', $macOctets);
         $this->responseHandler->setData(array('openSSID' => "Pineapple_{$macOctets[0]}", 'hideOpenAP' => true));
         return true;
     }
 
-    private function setupWifi()
+    public function setupWifi()
     {
         $managementSSID = $this->request['managementSSID'];
         $managementPass = $this->request['managementPass'];
@@ -112,7 +112,7 @@ class Setup extends Controller
         return true;
     }
 
-    private function enableSSH()
+    public function enableSSH()
     {
         exec('echo "/etc/init.d/sshd enable" | at now');
         exec('echo "/etc/init.d/sshd start" | at now');
@@ -123,12 +123,12 @@ class Setup extends Controller
         return false;
     }
 
-    private function restartWifi()
+    public function restartWifi()
     {
         exec('echo "/sbin/wifi" | at now');
     }
 
-    private function setupPineAP()
+    public function setupPineAP()
     {
         if ($this->request['macFilterMode'] === "Allow") {
             exec('hostapd_cli -i wlan0 karma_mac_white');
@@ -147,12 +147,12 @@ class Setup extends Controller
         exec('uci commit pineap');
     }
 
-    private function restartFirewall()
+    public function restartFirewall()
     {
         exec("/etc/init.d/firewall restart");
     }
 
-    private function setupFirewall()
+    public function setupFirewall()
     {
         if ($this->request['WANSSHAccess']) {
             exec("uci set firewall.allowssh.enabled=1");
@@ -165,7 +165,7 @@ class Setup extends Controller
         }
     }
 
-    private function finalizeSetup()
+    public function finalizeSetup()
     {
         $this->enableSSH();
         $this->restartFirewall();
@@ -182,7 +182,7 @@ class Setup extends Controller
         exec('/bin/touch /etc/pineapple/setup_complete');
     }
 
-    protected function performSetup()
+    public function performSetup()
     {
         if (!$this->checkButtonStatus()) {
             $this->responseHandler->setError("Not verified.");

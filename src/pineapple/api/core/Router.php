@@ -45,7 +45,7 @@ class Router {
      */
     private function loadModule($moduleName)
     {
-        session_write_close();
+        //session_write_close();
 
         //$moduleFilePath = "/frieren/modules/{$moduleName}/api/module.php";
         $moduleFilePath = __DIR__ . "/../../modules/{$moduleName}/api/module.php";

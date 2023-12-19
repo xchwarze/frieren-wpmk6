@@ -3,13 +3,20 @@
 /* Code modified by Frieren Auto Refactor */
 class Logging extends Controller
 {
-    protected $endpointRoutes = ['getSyslog', 'getDmesg', 'getReportingLog', 'getPineapLog', 'clearPineapLog', 'getPineapLogLocation', 'setPineapLogLocation', 'downloadPineapLog'];
+    public $endpointRoutes = ['getSyslog', 'getDmesg', 'getReportingLog', 'getPineapLog', 'clearPineapLog', 'getPineapLogLocation', 'setPineapLogLocation', 'downloadPineapLog'];
+    public $dbConnection;
 
-    private function downloadPineapLog()
+    private function setupDB()
     {
         $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].hostapd_db_path");
-        $db = new DatabaseConnection($dbLocation);
-        $rows = $db->query("SELECT * FROM log ORDER BY updated_at ASC;");
+        $this->dbConnection = new \frieren\orm\SQLite($dbLocation);
+    }
+
+    public function downloadPineapLog()
+    {
+        $this->setupDB();
+
+        $rows = $this->dbConnection->query("SELECT * FROM log ORDER BY updated_at ASC;");
         $logFile = fopen("/tmp/pineap.log", 'w');
         $count = "-";
         foreach ($rows as $row) {
@@ -34,19 +41,19 @@ class Logging extends Controller
         $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile('/tmp/pineap.log')));
     }
 
-    private function getSyslog()
+    public function getSyslog()
     {
         exec("logread", $syslogOutput);
         $this->responseHandler->setData(implode("\n", $syslogOutput));
     }
 
-    private function getDmesg()
+    public function getDmesg()
     {
         exec("dmesg", $dmesgOutput);
         $this->responseHandler->setData(implode("\n", $dmesgOutput));
     }
 
-    private function getReportingLog()
+    public function getReportingLog()
     {
         touch('/tmp/reporting.log');
         $this->streamFunction = function () {
@@ -58,29 +65,29 @@ class Logging extends Controller
         };
     }
 
-    private function getPineapLog()
+    public function getPineapLog()
     {
-        $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].hostapd_db_path");
-        $db = new DatabaseConnection($dbLocation);
-        $rows = $db->query("SELECT * FROM log ORDER BY updated_at DESC;");
+        $this->setupDB();
+
+        $rows = $this->dbConnection->query("SELECT * FROM log ORDER BY updated_at DESC;");
         $this->responseHandler->setData(array("pineap_log" => $rows));
     }
 
-    private function clearPineapLog()
+    public function clearPineapLog()
     {
-        $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].hostapd_db_path");
-        $db = new DatabaseConnection($dbLocation);
-        $db->exec("DELETE FROM log;");
+        $this->setupDB();
+
+        $this->dbConnection->exec("DELETE FROM log;");
         $this->responseHandler->setData(array('success' => true));
     }
 
-    private function getPineapLogLocation()
+    public function getPineapLogLocation()
     {
         $dbBasePath = dirname($this->systemHelper->uciGet("pineap.@config[0].hostapd_db_path"));
         $this->responseHandler->setData(array('location' => $dbBasePath . "/"));
     }
 
-    private function setPineapLogLocation()
+    public function setPineapLogLocation()
     {
         $dbLocation = dirname($this->request['location'] . '/fake_file');
         $this->systemHelper->uciSet("pineap.@config[0].hostapd_db_path", $dbLocation . '/log.db');

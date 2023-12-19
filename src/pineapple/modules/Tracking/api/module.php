@@ -3,27 +3,28 @@
 /* Code modified by Frieren Auto Refactor */
 class Tracking extends Controller
 {
-    protected $endpointRoutes = ['getScript', 'saveScript', 'getTrackingList', 'addMac', 'removeMac', 'clearMacs'];
+    public $endpointRoutes = ['getScript', 'saveScript', 'getTrackingList', 'addMac', 'removeMac', 'clearMacs'];
     const DATABASE = "/etc/pineapple/filters.db";
 
-    private $dbConnection = null;
+    public $dbConnection = null;
 
     public function __construct($request)
     {
-        parent::__construct($request, __CLASS__);
         $this->dbConnection = false;
         if (file_exists(self::DATABASE)) {
             $this->dbConnection = new \frieren\orm\SQLite(self::DATABASE);
         }
+
+        parent::__construct($request);
     }
 
-    private function getScript()
+    public function getScript()
     {
         $trackingScript = file_get_contents("/etc/pineapple/tracking_script_user");
         $this->responseHandler->setData(["trackingScript" => $trackingScript]);
     }
 
-    private function saveScript()
+    public function saveScript()
     {
         if (isset($this->request['trackingScript'])) {
             file_put_contents("/etc/pineapple/tracking_script_user", $this->request['trackingScript']);
@@ -31,7 +32,7 @@ class Tracking extends Controller
         $this->responseHandler->setData(["success" => true]);
     }
 
-    private function getTrackingList()
+    public function getTrackingList()
     {
         $trackingList = "";
         $result = $this->dbConnection->queryLegacy("SELECT mac FROM tracking;");
@@ -42,7 +43,7 @@ class Tracking extends Controller
         $this->responseHandler->setData(["trackingList" => $trackingList]);
     }
 
-    private function addMac()
+    public function addMac()
     {
         if (isset($this->request['mac']) && !empty($this->request['mac'])) {
             $mac = strtoupper($this->request['mac']);
@@ -55,7 +56,7 @@ class Tracking extends Controller
         }
     }
 
-    private function removeMac()
+    public function removeMac()
     {
         if (isset($this->request['mac']) && !empty($this->request['mac'])) {
             $mac = strtoupper($this->request['mac']);
@@ -68,7 +69,7 @@ class Tracking extends Controller
         }
     }
 
-    private function clearMacs()
+    public function clearMacs()
     {
         $this->dbConnection->execLegacy("DELETE FROM tracking;");
         $this->getTrackingList();
