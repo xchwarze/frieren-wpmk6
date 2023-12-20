@@ -56,7 +56,7 @@ class Setup extends Controller
 
         $this->responseHandler->setData(array(
             'complete' => $complete,
-            'config'   => \helper\getDeviceConfig(),
+            'config'   => $this->systemHelper->getDeviceConfig(),
         ));
     }
 

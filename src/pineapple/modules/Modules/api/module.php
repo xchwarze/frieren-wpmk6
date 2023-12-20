@@ -121,6 +121,10 @@ class Modules extends Controller
                 continue;
             }
 
+            if (\DeviceConfig::HIDE_SYSTEM_MODULES === true && isset($moduleInfo->system)) {
+                continue;
+            }
+
             $module = [
                 'title' => $moduleInfo->title,
                 'author' => $moduleInfo->author,

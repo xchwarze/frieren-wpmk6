@@ -1,28 +1,35 @@
-<?php namespace helper;
+<?php namespace frieren\helper;
 
 /* Code modified by Frieren Auto Refactor */
 class AccessPoint
 {
+    protected $systemHelper;
+
+    public function __construct()
+    {
+        $this->systemHelper = new OpenWrtHelper();
+    }
+
     public function saveAPConfig($apConfig)
     {
         if (is_array($apConfig)) {
             $apConfig = (object)$apConfig;
         }
 
-        uciSet('wireless.radio0.channel', $apConfig->selectedChannel);
+        $this->systemHelper->uciSet('wireless.radio0.channel', $apConfig->selectedChannel);
 
-        uciSet('wireless.@wifi-iface[0].ssid', $apConfig->openSSID, false);
-        uciSet('wireless.@wifi-iface[0].disabled', $apConfig->disableOpenAP, false);
-        uciSet('wireless.@wifi-iface[0].hidden', $apConfig->hideOpenAP, false);
-        uciSet('wireless.@wifi-iface[0].maxassoc', $apConfig->maxClients, false);
+        $this->systemHelper->uciSet('wireless.@wifi-iface[0].ssid', $apConfig->openSSID, false);
+        $this->systemHelper->uciSet('wireless.@wifi-iface[0].disabled', $apConfig->disableOpenAP, false);
+        $this->systemHelper->uciSet('wireless.@wifi-iface[0].hidden', $apConfig->hideOpenAP, false);
+        $this->systemHelper->uciSet('wireless.@wifi-iface[0].maxassoc', $apConfig->maxClients, false);
 
-        uciSet('wireless.@wifi-iface[1].ssid', $apConfig->managementSSID, false);
-        uciSet('wireless.@wifi-iface[1].key', $apConfig->managementKey, false);
-        uciSet('wireless.@wifi-iface[1].disabled', $apConfig->disableManagementAP, false);
-        uciSet('wireless.@wifi-iface[1].hidden', $apConfig->hideManagementAP, false);
+        $this->systemHelper->uciSet('wireless.@wifi-iface[1].ssid', $apConfig->managementSSID, false);
+        $this->systemHelper->uciSet('wireless.@wifi-iface[1].key', $apConfig->managementKey, false);
+        $this->systemHelper->uciSet('wireless.@wifi-iface[1].disabled', $apConfig->disableManagementAP, false);
+        $this->systemHelper->uciSet('wireless.@wifi-iface[1].hidden', $apConfig->hideManagementAP, false);
 
-        uciCommit();
-        execBackground('wifi');
+        $this->systemHelper->uciCommit();
+        $this->systemHelper->execBackground('wifi');
 
         return ["success" => true];
     }
@@ -43,18 +50,18 @@ class AccessPoint
         }
 
         return [
-            "selectedChannel" => uciGet("wireless.radio0.channel"),
+            "selectedChannel" => $this->systemHelper->uciGet("wireless.radio0.channel"),
             "availableChannels" => $channels,
 
-            "openSSID" => uciGet("wireless.@wifi-iface[0].ssid"),
-            "maxClients" => uciGet("wireless.@wifi-iface[0].maxassoc", false),
-            "disableOpenAP" => uciGet("wireless.@wifi-iface[0].disabled"),
-            "hideOpenAP" => uciGet("wireless.@wifi-iface[0].hidden"),
+            "openSSID" => $this->systemHelper->uciGet("wireless.@wifi-iface[0].ssid"),
+            "maxClients" => $this->systemHelper->uciGet("wireless.@wifi-iface[0].maxassoc", false),
+            "disableOpenAP" => $this->systemHelper->uciGet("wireless.@wifi-iface[0].disabled"),
+            "hideOpenAP" => $this->systemHelper->uciGet("wireless.@wifi-iface[0].hidden"),
 
-            "managementSSID" => uciGet("wireless.@wifi-iface[1].ssid"),
-            "managementKey" => uciGet("wireless.@wifi-iface[1].key"),
-            "disableManagementAP" => uciGet("wireless.@wifi-iface[1].disabled"),
-            "hideManagementAP" => uciGet("wireless.@wifi-iface[1].hidden")
+            "managementSSID" => $this->systemHelper->uciGet("wireless.@wifi-iface[1].ssid"),
+            "managementKey" => $this->systemHelper->uciGet("wireless.@wifi-iface[1].key"),
+            "disableManagementAP" => $this->systemHelper->uciGet("wireless.@wifi-iface[1].disabled"),
+            "hideManagementAP" => $this->systemHelper->uciGet("wireless.@wifi-iface[1].hidden")
         ];
     }
 }

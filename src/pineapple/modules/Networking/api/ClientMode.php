@@ -1,13 +1,20 @@
-<?php namespace helper;
+<?php namespace frieren\helper;
 
 /* Code modified by Frieren Auto Refactor */
 class ClientMode
 {
+    protected $systemHelper;
+
+    public function __construct()
+    {
+        $this->systemHelper = new OpenWrtHelper();
+    }
+
     public function scanForNetworks($interface, $uciID, $radio)
     {
         $interface = escapeshellarg($interface);
         if (substr($interface, -4, -1) === "mon") {
-            $pineapInterface = uciGet("pineap.@config[0].pineap_interface");
+            $pineapInterface = $this->systemHelper->uciGet("pineap.@config[0].pineap_interface");
             if ($interface === "'{$pineapInterface}'") {
                 exec("/etc/init.d/pineapd stop");
             }
@@ -16,8 +23,8 @@ class ClientMode
             exec("iw dev {$interface} scan &> /dev/null");
         }
 
-        if (uciGet("wireless.@wifi-iface[{$uciID}].network") === 'wwan') {
-            uciSet("wireless.@wifi-iface[{$uciID}].network", 'lan');
+        if ($this->systemHelper->uciGet("wireless.@wifi-iface[{$uciID}].network") === 'wwan') {
+            $this->systemHelper->uciSet("wireless.@wifi-iface[{$uciID}].network", 'lan');
             exec("wifi up $radio");
             sleep(2);
         }
@@ -101,18 +108,18 @@ class ClientMode
                 $encryption = "";
         }
 
-        uciSet("wireless.@wifi-iface[{$uciID}].network", 'wwan', false);
-        uciSet("wireless.@wifi-iface[{$uciID}].mode", 'sta', false);
-        uciSet("wireless.@wifi-iface[{$uciID}].ssid", $ap->ssid, false);
-        uciSet("wireless.@wifi-iface[{$uciID}].encryption", $encryption, false);
-        uciSet("wireless.@wifi-iface[{$uciID}].key", $key, false);
-        uciCommit();
+        $this->systemHelper->uciSet("wireless.@wifi-iface[{$uciID}].network", 'wwan', false);
+        $this->systemHelper->uciSet("wireless.@wifi-iface[{$uciID}].mode", 'sta', false);
+        $this->systemHelper->uciSet("wireless.@wifi-iface[{$uciID}].ssid", $ap->ssid, false);
+        $this->systemHelper->uciSet("wireless.@wifi-iface[{$uciID}].encryption", $encryption, false);
+        $this->systemHelper->uciSet("wireless.@wifi-iface[{$uciID}].key", $key, false);
+        $this->systemHelper->uciCommit();
 
         if ($radioID === false) {
-            execBackground("wifi");
+            $this->systemHelper->execBackground("wifi");
         } else {
-            execBackground("wifi reload {$radioID}");
-            execBackground("wifi up {$radioID}");
+            $this->systemHelper->execBackground("wifi reload {$radioID}");
+            $this->systemHelper->execBackground("wifi up {$radioID}");
         }
 
         return ["success" => true];
@@ -136,17 +143,17 @@ class ClientMode
 
     public function disconnect($uciID, $radioID)
     {
-        uciSet("wireless.@wifi-iface[{$uciID}].network", 'lan', false);
-        uciSet("wireless.@wifi-iface[{$uciID}].ssid", '', false);
-        uciSet("wireless.@wifi-iface[{$uciID}].encryption", 'none', false);
-        uciSet("wireless.@wifi-iface[{$uciID}].key", '', false);
-        uciCommit();
+        $this->systemHelper->uciSet("wireless.@wifi-iface[{$uciID}].network", 'lan', false);
+        $this->systemHelper->uciSet("wireless.@wifi-iface[{$uciID}].ssid", '', false);
+        $this->systemHelper->uciSet("wireless.@wifi-iface[{$uciID}].encryption", 'none', false);
+        $this->systemHelper->uciSet("wireless.@wifi-iface[{$uciID}].key", '', false);
+        $this->systemHelper->uciCommit();
 
         if ($radioID === false) {
-            execBackground("wifi");
+            $this->systemHelper->execBackground("wifi");
         } else {
-            execBackground("wifi reload {$radioID}");
-            execBackground("wifi up {$radioID}");
+            $this->systemHelper->execBackground("wifi reload {$radioID}");
+            $this->systemHelper->execBackground("wifi up {$radioID}");
         }
 
         return ["success" => true];

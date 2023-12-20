@@ -57,12 +57,6 @@
                     }
                 }
             }, function(response) {
-                /*
-                callback(
-                    (response.statusText || response.status) ?
-                        { error: 'HTTP Error', HTTPError: response.statusText, HTTPCode: response.status } : {}
-                );
-                */
                 if (callback !== undefined) {
                     if (scope !== undefined) {
                         callback(response.data, scope);

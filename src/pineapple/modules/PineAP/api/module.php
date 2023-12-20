@@ -2,7 +2,7 @@
 
 /* Code modified by Frieren Auto Refactor */
 
-require_once('/pineapple/modules/PineAP/api/PineAPHelper.php');
+require_once('PineAPHelper.php');
 
 class PineAP extends Controller
 {
@@ -14,16 +14,18 @@ class PineAP extends Controller
 
     public function __construct($request)
     {
-        $this->pineAPHelper = new PineAPHelper();
         $this->dbConnection = false;
+        $this->pineAPHelper = new \frieren\helper\PineAPHelper();
 
-        $systemHelper = new \frieren\helper\OpenWrtHelper();
-        $dbLocation = $systemHelper->uciGet("pineap.@config[0].ssid_db_path");
+        parent::__construct($request);
+    }
+
+    private function setupDB()
+    {
+        $dbLocation = $this->systemHelper->uciGet("pineap.@config[0].ssid_db_path");
         if (file_exists($dbLocation)) {
             $this->dbConnection = new \frieren\orm\SQLite($dbLocation);
         }
-
-        parent::__construct($request);
     }
 
     public function toggleComment($fileName, $lineNumber, $comment)
@@ -87,7 +89,7 @@ class PineAP extends Controller
 
     public function loadProbes()
     {
-        if (!\helper\checkRunningFull("/usr/sbin/pineapd")) {
+        if (!$this->systemHelper->checkRunning("/usr/sbin/pineapd", true)) {
             $this->responseHandler->setData(array('success' => false, 'reason' => "not running"));
             return;
         }
@@ -183,6 +185,7 @@ class PineAP extends Controller
 
     public function getPoolData()
     {
+        $this->setupDB();
         $ssidPool = "";
         $rows = $this->dbConnection->queryLegacy('SELECT * FROM ssids;');
         if (!isset($rows['databaseQueryError'])) {
@@ -195,6 +198,7 @@ class PineAP extends Controller
 
     public function getNewPoolData()
     {
+        $this->setupDB();
         $ssidPool = "";
         $rows = $this->dbConnection->queryLegacy('SELECT * FROM ssids WHERE new_ssid=1;');
         if (!isset($rows['databaseQueryError'])) {
@@ -213,6 +217,7 @@ class PineAP extends Controller
     public function clearPool()
     {
         $this->checkPineAP();
+        $this->setupDB();
         $this->dbConnection->queryLegacy('DELETE FROM ssids;');
         $this->responseHandler->setData(array('success' => true));
     }
@@ -220,6 +225,7 @@ class PineAP extends Controller
     public function addSSID()
     {
         $this->checkPineAP();
+        $this->setupDB();
         $ssid = $this->request['ssid'];
         $created_date = date('Y-m-d H:i:s');
         if (strlen($ssid) < 1 || strlen($ssid) > 32) {
@@ -233,6 +239,7 @@ class PineAP extends Controller
     public function addSSIDs()
     {
         $this->checkPineAP();
+        $this->setupDB();
         $ssidList = $this->request['ssids'];
         $created_date = date('Y-m-d H:i:s');
 
@@ -247,6 +254,7 @@ class PineAP extends Controller
     public function removeSSID()
     {
         $this->checkPineAP();
+        $this->setupDB();
         $ssid = $this->request['ssid'];
         if (strlen($ssid) < 1 || strlen($ssid) > 32) {
             $this->responseHandler->setError('Your SSID must have a length greater than 1 and less than 32.');

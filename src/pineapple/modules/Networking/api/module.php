@@ -51,19 +51,19 @@ class Networking extends Controller
 
     public function resetWirelessConfig()
     {
-        $interfaceHelper = new \helper\Interfaces();
+        $interfaceHelper = new \frieren\helper\Interfaces();
         $this->responseHandler->setData($interfaceHelper->resetWirelessConfig());
     }
 
     public function getInterfaceList()
     {
-        $interfaceHelper = new \helper\Interfaces();
+        $interfaceHelper = new \frieren\helper\Interfaces();
         $this->responseHandler->setData($interfaceHelper->getInterfaceList());
     }
 
     public function saveAPConfig()
     {
-        $accessPointHelper = new \helper\AccessPoint();
+        $accessPointHelper = new \frieren\helper\AccessPoint();
         $config = $this->request['apConfig'];
         if (empty($config->openSSID) || empty($config->managementSSID)) {
             $this->responseHandler->setError("Error: SSIDs must be at least one character.");
@@ -78,44 +78,44 @@ class Networking extends Controller
 
     public function getAPConfig()
     {
-        $accessPointHelper = new \helper\AccessPoint();
+        $accessPointHelper = new \frieren\helper\AccessPoint();
         $this->responseHandler->setData($accessPointHelper->getAPConfig());
     }
 
     public function getMacData()
     {
-        $interfaceHelper = new \helper\Interfaces();
+        $interfaceHelper = new \frieren\helper\Interfaces();
         $this->responseHandler->setData($interfaceHelper->getMacData());
     }
 
     public function setMac()
     {
-        $interfaceHelper = new \helper\Interfaces();
+        $interfaceHelper = new \frieren\helper\Interfaces();
         $this->responseHandler->setData($interfaceHelper->setMac(false, $this->request['interface'], $this->request['mac'], $this->request['forceReload']));
     }
 
     public function setRandomMac()
     {
-        $interfaceHelper = new \helper\Interfaces();
+        $interfaceHelper = new \frieren\helper\Interfaces();
         $this->responseHandler->setData($interfaceHelper->setMac(true, $this->request['interface'], $this->request['mac'], $this->request['forceReload']));
     }
 
     public function resetMac()
     {
-        $interfaceHelper = new \helper\Interfaces();
+        $interfaceHelper = new \frieren\helper\Interfaces();
         $this->responseHandler->setData($interfaceHelper->resetMac($this->request['interface']));
     }
 
     public function checkConnection()
     {
-        $clientModeHelper = new \helper\ClientMode();
+        $clientModeHelper = new \frieren\helper\ClientMode();
         $this->responseHandler->setData($clientModeHelper->checkConnection());
     }
 
     public function disconnect()
     {
-        $interfaceHelper = new \helper\Interfaces();
-        $clientModeHelper = new \helper\ClientMode();
+        $interfaceHelper = new \frieren\helper\Interfaces();
+        $clientModeHelper = new \frieren\helper\ClientMode();
         $interface = $this->request['interface'];
         $uciID = $interfaceHelper->getUciID($interface);
         $radioID = $interfaceHelper->getRadioID($interface);
@@ -124,8 +124,8 @@ class Networking extends Controller
 
     public function connectToAP()
     {
-        $interfaceHelper = new \helper\Interfaces();
-        $clientModeHelper = new \helper\ClientMode();
+        $interfaceHelper = new \frieren\helper\Interfaces();
+        $clientModeHelper = new \frieren\helper\ClientMode();
 
         $interface = $this->request['interface'];
         $uciID = $interfaceHelper->getUciID($interface);
@@ -136,8 +136,8 @@ class Networking extends Controller
 
     public function scanForNetworks()
     {
-        $interfaceHelper = new \helper\Interfaces();
-        $clientModeHelper = new \helper\ClientMode();
+        $interfaceHelper = new \frieren\helper\Interfaces();
+        $clientModeHelper = new \frieren\helper\ClientMode();
         $interface = $this->request['interface'];
         $uciID = $interfaceHelper->getUciID($interface);
         $radioID = $interfaceHelper->getRadioID($interface);
@@ -146,7 +146,7 @@ class Networking extends Controller
 
     public function getClientInterfaces()
     {
-        $interfaceHelper = new \helper\Interfaces();
+        $interfaceHelper = new \frieren\helper\Interfaces();
         $this->responseHandler->setData($interfaceHelper->getClientInterfaces());
     }
 

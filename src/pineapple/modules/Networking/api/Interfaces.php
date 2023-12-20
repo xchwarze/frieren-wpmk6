@@ -1,8 +1,15 @@
-<?php namespace helper;
+<?php namespace frieren\helper;
 
 /* Code modified by Frieren Auto Refactor */
 class Interfaces
 {
+    protected $systemHelper;
+
+    public function __construct()
+    {
+        $this->systemHelper = new OpenWrtHelper();
+    }
+
     public function getMacData()
     {
         $macData = [];
@@ -55,7 +62,7 @@ class Interfaces
             $mac = exec("ifconfig {$interface} down && macchanger -m {$requestMac} {$interface} | grep New | awk '{print \$3}'");
         }
 
-        uciSet("wireless.@wifi-iface[{$uciID}].macaddr", $mac);
+        $this->systemHelper->uciSet("wireless.@wifi-iface[{$uciID}].macaddr", $mac);
         if ($forceReload) {
             exec("wifi");
         } else {
@@ -75,7 +82,7 @@ class Interfaces
 
     public function resetWirelessConfig()
     {
-        execBackground("wifi config > /etc/config/wireless && wifi");
+        $this->systemHelper->execBackground("wifi config > /etc/config/wireless && wifi");
         return ["success" => true];
     }
 

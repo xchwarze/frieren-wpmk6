@@ -75,7 +75,7 @@
 
         $scope.login = function(){
             $api.login($scope.username, $scope.password, function(data){
-                if (data.logged !== undefined && data.logged === false) {
+                if (data.error !== undefined) {
                     $scope.message = "Invalid username or password.";
                 } else {
                     window.location.reload();

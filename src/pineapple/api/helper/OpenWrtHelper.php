@@ -13,14 +13,12 @@ class OpenWrtHelper
      * Executes a command in the background.
      *
      * @param string $command The command to execute.
-     * @return mixed The result of the command execution.
      */
     public function execBackground($command)
     {
-        $command = escapeshellarg($command);
-        exec("echo \"{$command}\" | /usr/bin/at now", $result);
-
-        return $result;
+        // the use of escapeshellarg() can break the command in this context
+        exec("echo \"{$command}\" | /usr/bin/at now");
+        //exec("{$command} > /dev/null 2>&1 &");
     }
 
     /**

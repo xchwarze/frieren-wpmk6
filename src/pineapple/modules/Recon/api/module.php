@@ -68,7 +68,7 @@ class Recon extends Controller
 
     public function checkPineAPDaemon()
     {
-        return (bool) $this->systemHelper->checkRunning("/usr/sbin/pineapd", true);
+        return $this->systemHelper->checkRunning("/usr/sbin/pineapd", true);
     }
 
     public function startNormalScan()
