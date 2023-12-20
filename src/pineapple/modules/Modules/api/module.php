@@ -130,7 +130,8 @@ class Modules extends Controller
                 'author' => $moduleInfo->author,
                 'version' => $moduleInfo->version,
                 'description' => $moduleInfo->description,
-                'size' => $fileinfo->getSize(),
+                //'size' => $fileinfo->getSize(),
+                'size' => exec("du -sh /pineapple/modules/{$moduleFolder}/ | awk '{print $1;}'"),
                 'type' => 'GUI',
             ];
 

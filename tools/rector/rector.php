@@ -17,7 +17,7 @@
 use Rector\Config\RectorConfig;
 use Utils\Rector\AddAutoRefactorCommentRector;
 use Utils\Rector\ChangeMethodCallRector;
-use Utils\Rector\ChangePublicMethodsToProtectedRector;
+use Utils\Rector\ChangePrivateMethodsToPublicRector;
 use Utils\Rector\ChangeResponseAssignmentRector;
 use Utils\Rector\ConvertObjectAccessToArrayAccessRector;
 use Utils\Rector\RefactorDatabaseUsesRector;
@@ -49,8 +49,8 @@ return static function (RectorConfig $rectorConfig): void {
     // Remove route method and create constants from old switch cases
     $rectorConfig->rule(RemoveRouteMethodAndCreateConstantsRector::class);
 
-    // Changes all api public methods to protected
-    $rectorConfig->rule(ChangePublicMethodsToProtectedRector::class);
+    // Changes all api private methods to public
+    $rectorConfig->rule(ChangePrivateMethodsToPublicRector::class);
 
     // Convert object property access to array access for $this->request
     $rectorConfig->rule(ConvertObjectAccessToArrayAccessRector::class);
