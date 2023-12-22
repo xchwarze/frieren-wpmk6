@@ -74,7 +74,7 @@ class Dashboard extends Controller
         if ($bulletinData !== false) {
             $bulletinData = json_decode($bulletinData);
             if (json_last_error() === JSON_ERROR_NONE) {
-                $this->responseHandler->setData($bulletinData);
+                return $this->responseHandler->setData($bulletinData);
             }
         }
         

@@ -88,7 +88,7 @@ class Modules extends Controller
         if ($moduleData !== false) {
             $moduleData = json_decode($moduleData);
             if (json_last_error() === JSON_ERROR_NONE) {
-                $this->responseHandler->setData(['availableModules' => $moduleData]);
+                return $this->responseHandler->setData(['availableModules' => $moduleData]);
             }
         }
 
@@ -167,7 +167,7 @@ class Modules extends Controller
             $moduleFileName = "{$destination}{$this->request['moduleName']}.tar.gz";
 
             if (hash_file('sha256', $moduleFileName) == $this->request['checksum']) {
-                $this->responseHandler->setData(['success' => true]);
+                return $this->responseHandler->setData(['success' => true]);
             }
         }
         
@@ -202,7 +202,7 @@ class Modules extends Controller
 
     public function checkDestination()
     {
-        $config = $this->getDeviceConfig();
+        $config = $this->systemHelper->getDeviceConfig();
         $validSpace = disk_free_space('/') > ($this->request['size'] + self::SECURE_SPACE);
 
         $this->responseHandler->setData([
