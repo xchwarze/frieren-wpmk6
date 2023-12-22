@@ -17,12 +17,9 @@ $logDBPath = exec("uci get pineap.@config[0].hostapd_db_path");
 if (!file_exists($logDBPath)) {
 	exit("File ${logDBPath} does not exist\n");
 }
-$dbConnection = new \frieren\orm\SQLite($logDBPath);
+$dbConnection = new \frieren\orm\SQLite($logDBPath, false);
 if ($dbConnection === NULL) {
 	exit("Unable to create database connection\n");
-}
-if (isset($dbConnection->error['databaseConnectionError'])) {
-	exit($dbConnection->strError() . "\n");
 }
 
 $sql = "SELECT * FROM log ORDER BY updated_at DESC;";

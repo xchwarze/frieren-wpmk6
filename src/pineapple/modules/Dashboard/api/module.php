@@ -76,10 +76,11 @@ class Dashboard extends Controller
     public function getBulletins()
     {
         $url = sprintf(\DeviceConfig::NEWS_PATH, \DeviceConfig::SERVER_URL);
-        $bulletinData = @$this->systemHelper->fileGetContentsSSL($url);
+        $bulletinData = $this->systemHelper->fileGetContentsSSL($url);
         if ($bulletinData !== false) {
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                $this->responseHandler->setData(json_decode($bulletinData));
+            $bulletinData = json_decode($bulletinData);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $this->responseHandler->setData($bulletinData);
             }
         }
         

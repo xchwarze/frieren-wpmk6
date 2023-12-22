@@ -131,7 +131,7 @@ class Networking extends Controller
         $uciID = $interfaceHelper->getUciID($interface);
         $radioID = $interfaceHelper->getRadioID($interface);
 
-        $this->responseHandler->setData($clientModeHelper->connectToAP($uciID, $this->request['ap'], $this->request['key'], $radioID));
+        $this->responseHandler->setData($clientModeHelper->connectToAP($uciID, (object)$this->request['ap'], $this->request['key'], $radioID));
     }
 
     public function scanForNetworks()
