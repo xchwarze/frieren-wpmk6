@@ -25,7 +25,7 @@ class DeviceConfig
     const SERVER_URL = 'https://raw.githubusercontent.com/xchwarze/wifi-pineapple-community/main';
     const NEWS_PATH = '%s/json/news.json';
     const UPGRADE_PATH = '%s/json/upgrades.json';
-    const MODULES_PATH = '%s/modules/build/modules.json';
-    const INSTALL_MODULE_PATH = '%s/modules/build/%s';
+    const MODULES_PATH = 'https://raw.githubusercontent.com/xchwarze/wifi-pineapple-community/frieren/modules/build/modules.json';
+    const INSTALL_MODULE_PATH = 'https://raw.githubusercontent.com/xchwarze/wifi-pineapple-community/frieren/modules/build/%s';
     const OUI_PATH = '%s/oui/oui.txt';
 }

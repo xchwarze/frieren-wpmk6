@@ -154,7 +154,8 @@ class Modules extends Controller
         @mkdir($destination, 0777, true);
 
         $moduleFileName = "{$this->request['moduleName']}.tar.gz";
-        $url = sprintf(\DeviceConfig::INSTALL_MODULE_PATH, \DeviceConfig::SERVER_URL, $moduleFileName);
+        //$url = sprintf(\DeviceConfig::INSTALL_MODULE_PATH, \DeviceConfig::SERVER_URL, $moduleFileName);
+        $url = sprintf(\DeviceConfig::INSTALL_MODULE_PATH, $moduleFileName);
         $this->systemHelper->downloadFile($url, "{$destination}{$moduleFileName}", self::DOWN_FLAG);
 
         $this->responseHandler->setData(['success' => true]);
