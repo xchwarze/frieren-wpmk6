@@ -8,12 +8,6 @@ class Dashboard extends Controller
 {
     public $endpointRoutes = ['getOverviewData', 'getLandingPageData', 'getBulletins'];
     public $dbConnection;
-    public function __construct($request)
-    {
-        $this->dbConnection = false;
-
-        parent::__construct($request);
-    }
 
     public function getOverviewData()
     {

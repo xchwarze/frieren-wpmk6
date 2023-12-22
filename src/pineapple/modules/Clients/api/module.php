@@ -6,13 +6,6 @@ class Clients extends Controller
     public $endpointRoutes = ['getClientData', 'kickClient'];
     public $dbConnection;
 
-    public function __construct($request)
-    {
-        $this->dbConnection = false;
-
-        parent::__construct($request);
-    }
-
     public function getLeases() {
         $dhcpReport = array();
         $leases = explode("\n", @file_get_contents('/var/dhcp.leases'));

@@ -6,17 +6,14 @@ class Advanced extends Controller
     public $endpointRoutes = ['getResources', 'dropCaches', 'getUSB', 'getFstab', 'saveFstab', 'getCSS', 'saveCSS', 'formatSDCard', 'formatSDCardStatus', 'checkForUpgrade', 'downloadUpgrade', 'getDownloadStatus', 'performUpgrade', 'getCurrentVersion', 'checkApiToken', 'addApiToken', 'getApiTokens', 'revokeApiToken'];
     public $dbConnection;
 
-    const DATABASE = "/etc/pineapple/pineapple.db";
     const UP_PATH = "/tmp/upgrade.bin";
     const UP_FLAG = "/tmp/upgradeDownloaded";
     const UP_PATCH = "/tmp/hotpatch.patch";
 
-    public function __construct($request)
+    private function setupDB()
     {
-        $this->dbConnection = new \frieren\orm\SQLite(self::DATABASE);
+        $this->dbConnection = new \frieren\orm\SQLite('/etc/pineapple/pineapple.db');
         $this->dbConnection->execLegacy("CREATE TABLE IF NOT EXISTS api_tokens (token VARCHAR NOT NULL, name VARCHAR NOT NULL);");
-
-        parent::__construct($request);
     }
 
     public function getResources()
@@ -180,12 +177,14 @@ class Advanced extends Controller
 
     public function getApiTokens()
     {
+        $this->setupDB();
         $tokens = $this->dbConnection->queryLegacy("SELECT ROWID, token, name FROM api_tokens;");
         $this->responseHandler->setData(["tokens" => $tokens]);
     }
 
     public function checkApiToken()
     {
+        $this->setupDB();
         if (isset($this->request['token'])) {
             $token = $this->request['token'];
             $result = $this->dbConnection->queryLegacy("SELECT token FROM api_tokens WHERE token='%s';", $token);
@@ -200,6 +199,7 @@ class Advanced extends Controller
 
     public function addApiToken()
     {
+        $this->setupDB();
         if (isset($this->request['name'])) {
             $token = hash('sha512', random_bytes(32));
             $name = $this->request['name'];
@@ -212,6 +212,7 @@ class Advanced extends Controller
 
     public function revokeApiToken()
     {
+        $this->setupDB();
         if (isset($this->request['id'])) {
             $this->dbConnection->execLegacy("DELETE FROM api_tokens WHERE ROWID='%s'", $this->request['id']);
         } elseif (isset($this->request['token'])) {
