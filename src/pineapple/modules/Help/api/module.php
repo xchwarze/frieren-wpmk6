@@ -18,7 +18,7 @@ class Help extends Controller
             $this->responseHandler->setError("The debug file is missing.");
             return;
         }
-        $this->responseHandler->setData(array("success" => true, "downloadToken" => $this->systemHelper->downloadFile("/tmp/debug.log")));
+        $this->responseHandler->setData(array("success" => true, "downloadToken" => $this->systemHelper->generateDownloadFile("/tmp/debug.log")));
     }
 
     public function getConsoleOutput()

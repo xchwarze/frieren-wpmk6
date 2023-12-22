@@ -336,7 +336,7 @@ class Recon extends Controller
         $fileData = $this->getScanObject($this->request['scanID']);
         $fileName = '/tmp/recon_data.json';
         file_put_contents($fileName, json_encode($fileData, JSON_PRETTY_PRINT));
-        $this->responseHandler->setData(["download" => $this->systemHelper->downloadFile($fileName)]);
+        $this->responseHandler->setData(["download" => $this->systemHelper->generateDownloadFile($fileName)]);
     }
 
     public function getScans()

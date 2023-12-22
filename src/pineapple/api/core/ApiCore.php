@@ -65,7 +65,6 @@ class ApiCore
         }
 
         if (!isset($_COOKIE['XSRF-TOKEN']) || $_COOKIE['XSRF-TOKEN'] !== $_SESSION['XSRF-TOKEN']) {
-            //setcookie('XSRF-TOKEN', $_SESSION['XSRF-TOKEN'], time() + 3600, '/', '', false, true);
             setcookie('XSRF-TOKEN', $_SESSION['XSRF-TOKEN'], 0, '/', '', false, false);
         }
     }
@@ -79,6 +78,8 @@ class ApiCore
             if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
                 $this->responseHandler->setError(null);
                 $this->responseHandler->setData('');
+            } else if (isset($_GET['download'])) {
+                $this->downloadFile();
             } else if ($this->authenticated()) {
                 $this->responseHandler = $this->router->routeModule();
             }
@@ -113,5 +114,20 @@ class ApiCore
         }
 
         return true;
+    }
+
+    // from original pineapple
+    private function downloadFile()
+    {
+        $dbConnection = new \frieren\orm\SQLite('/etc/pineapple/pineapple.db');
+        $dbConnection->execLegacy("CREATE TABLE IF NOT EXISTS downloads (token VARCHAR NOT NULL, file VARCHAR NOT NULL, time timestamp default (strftime('%s', 'now')));");
+        $dbConnection->execLegacy("DELETE FROM downloads WHERE time < (strftime('%s', 'now')-30)");
+
+        $result = $dbConnection->execLegacy('SELECT file from downloads WHERE token="%s";', $_GET['download']);
+        if (!isset($result[0])) {
+            exit('Invalid download token.');
+        }
+
+        $this->responseHandler->streamFile($result[0]['file']);
     }
 }

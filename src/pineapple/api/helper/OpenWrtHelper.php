@@ -48,7 +48,7 @@ class OpenWrtHelper
         $dependencyName = escapeshellarg($dependencyName);
         exec("/usr/bin/which {$dependencyName}", $output);
 
-        return !(trim($output[0]) === "");
+        return !empty($output);
     }
 
     /**
@@ -193,18 +193,18 @@ class OpenWrtHelper
         return false;
     }
 
-    //////////////////
-    /*
-    public function downloadFile($file)
+    // from here are functions of the original platform
+    /////////////////////
+    public function generateDownloadFile($file)
     {
         $token = hash('sha256', $file . time());
 
-        $database = new \pineapple\DatabaseConnection("/etc/pineapple/pineapple.db");
-        $database->exec("CREATE TABLE IF NOT EXISTS downloads (token VARCHAR NOT NULL, file VARCHAR NOT NULL, time timestamp default (strftime('%s', 'now')));");
-        $database->exec("INSERT INTO downloads (token, file) VALUES ('%s', '%s')", $token, $file);
+        $database = new \frieren\orm\SQLite('/etc/pineapple/pineapple.db');
+        $database->execLegacy("CREATE TABLE IF NOT EXISTS downloads (token VARCHAR NOT NULL, file VARCHAR NOT NULL, time timestamp default (strftime('%s', 'now')));");
+        $database->execLegacy("INSERT INTO downloads (token, file) VALUES ('%s', '%s')", $token, $file);
 
         return $token;
-    }*/
+    }
 
     public function getFirmwareVersion()
     {

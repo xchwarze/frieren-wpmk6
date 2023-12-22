@@ -45,8 +45,6 @@ class Router {
      */
     private function loadModule($moduleName)
     {
-        //session_write_close();
-
         //$moduleFilePath = "/frieren/modules/{$moduleName}/api/module.php";
         $moduleFilePath = __DIR__ . "/../../modules/{$moduleName}/api/module.php";
         if (!file_exists($moduleFilePath)) {
@@ -54,7 +52,6 @@ class Router {
         }
 
         require_once($moduleFilePath);
-
         $moduleClass = "frieren\\core\\{$moduleName}";
         if (!class_exists($moduleClass)) {
             throw new \Exception("The class {$moduleClass} does not exist in the module file.");

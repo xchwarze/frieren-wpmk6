@@ -75,7 +75,7 @@ class Notes extends Controller
         }
         $fileName = '/tmp/notes.json';
         file_put_contents($fileName, json_encode($noteData, JSON_PRETTY_PRINT));
-        $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile($fileName)));
+        $this->responseHandler->setData(array("download" => $this->systemHelper->generateDownloadFile($fileName)));
     }
 
     public function getKeys()

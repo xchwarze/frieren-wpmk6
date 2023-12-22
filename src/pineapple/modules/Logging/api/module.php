@@ -38,7 +38,7 @@ class Logging extends Controller
             fwrite($logFile, "${row['created_at']},\t${type},\t${row['mac']},\t${row['ssid']},\t${count}\n");
         }
         fclose($logFile);
-        $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile('/tmp/pineap.log')));
+        $this->responseHandler->setData(array("download" => $this->systemHelper->generateDownloadFile('/tmp/pineap.log')));
     }
 
     public function getSyslog()

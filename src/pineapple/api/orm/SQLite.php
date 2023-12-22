@@ -252,12 +252,6 @@ class SQLite
     public function execLegacy(...$query)
     {
         $safeQuery = SQLite::formatQuery($query);
-
-        try {
-            return $this->db->exec($safeQuery);
-        } catch (\Exception $e) {
-            $this->error['databaseExecutionError'] = $e->getMessage();
-            return false;
-        }
+        return $this->db->exec($safeQuery);
     }
 }

@@ -109,7 +109,7 @@ class PineAP extends Controller
         $poolLocation = '/tmp/ssid_pool.txt';
         $data = $this->getPoolData();
         file_put_contents($poolLocation, $data);
-        $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile($poolLocation)));
+        $this->responseHandler->setData(array("download" => $this->systemHelper->generateDownloadFile($poolLocation)));
     }
 
     public function countSSIDs()
@@ -543,7 +543,7 @@ class PineAP extends Controller
             $data[] = $row['username'] . ':$NETNTLM$' . $row['hex(challenge)'] . '$' . $row['hex(response)'];
         }
         file_put_contents($jtrLocation, join("\n", $data));
-        $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile($jtrLocation)));
+        $this->responseHandler->setData(array("download" => $this->systemHelper->generateDownloadFile($jtrLocation)));
     }
 
     public function downloadHashcatHashes()
@@ -560,7 +560,7 @@ class PineAP extends Controller
             $data[] = $row['username'] . '::::' . $row['hex(response)'] . ':' . $row['hex(challenge)'];
         }
         file_put_contents($hashcatLocation, join("\n", $data));
-        $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile($hashcatLocation)));
+        $this->responseHandler->setData(array("download" => $this->systemHelper->generateDownloadFile($hashcatLocation)));
     }
 
     public function getEnterpriseRunning()
@@ -626,7 +626,7 @@ class PineAP extends Controller
     {
         @unlink('/tmp/handshakes/handshakes.tar.gz');
         exec("tar -czf /tmp/handshakes/handshakes.tar.gz -C /tmp/handshakes .");
-        $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile("/tmp/handshakes/handshakes.tar.gz")));
+        $this->responseHandler->setData(array("download" => $this->systemHelper->generateDownloadFile("/tmp/handshakes/handshakes.tar.gz")));
     }
 
     public function clearAllHandshakes()
@@ -676,9 +676,9 @@ class PineAP extends Controller
             } else {
                 $suffix .= "partial";
             }
-            $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile("/tmp/handshakes/{$bssid}{$suffix}.pcap")));
+            $this->responseHandler->setData(array("download" => $this->systemHelper->generateDownloadFile("/tmp/handshakes/{$bssid}{$suffix}.pcap")));
         } else {
-            $this->responseHandler->setData(array("download" => $this->systemHelper->downloadFile("/tmp/handshakes/{$bssid}.{$type}")));
+            $this->responseHandler->setData(array("download" => $this->systemHelper->generateDownloadFile("/tmp/handshakes/{$bssid}.{$type}")));
         }
     }
 
